@@ -91,6 +91,67 @@ describe("S1 login and session", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("value is not a valid email");
   });
 
+  describe("login throttle 429", () => {
+    function throttled(headers?: Record<string, string>) {
+      const bodies: unknown[] = [];
+      server.use(
+        http.post(`${API}/members/login`, async ({ request }) => {
+          bodies.push(await request.json());
+          return HttpResponse.json({ detail: "Too many failed attempts" }, { status: 429, headers });
+        }),
+      );
+      return bodies;
+    }
+
+    it("shows the reset time in minutes from Retry-After", async () => {
+      const bodies = throttled({ "Retry-After": "300" });
+      renderApp("/login");
+      await logIn();
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        /^Too many failed attempts\. Try again in about 5 minutes\.$/,
+      );
+      expect(bodies).toEqual([{ email: "ada@example.com", password: "pw-123456" }]);
+    });
+
+    it("says less than a minute for a short Retry-After", async () => {
+      const bodies = throttled({ "Retry-After": "30" });
+      renderApp("/login");
+      await logIn();
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        /^Too many failed attempts\. Try again in less than a minute\.$/,
+      );
+      expect(bodies).toHaveLength(1);
+    });
+
+    it("falls back to try-again-later without a Retry-After header", async () => {
+      const bodies = throttled();
+      renderApp("/login");
+      await logIn();
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        /^Too many failed attempts\. Try again later\.$/,
+      );
+      expect(bodies).toHaveLength(1);
+    });
+
+    it("stores no token and does not claim the session expired", async () => {
+      throttled({ "Retry-After": "300" });
+      renderApp("/login");
+      await logIn();
+      await screen.findByRole("alert");
+      expect(getToken()).toBeNull();
+      expect(screen.queryByText(/session expired/i)).not.toBeInTheDocument();
+    });
+
+    it("re-enables the submit button so the user can retry", async () => {
+      const bodies = throttled({ "Retry-After": "300" });
+      renderApp("/login");
+      await logIn();
+      await screen.findByRole("alert");
+      expect(screen.getByRole("button", { name: "Log in" })).toBeEnabled();
+      expect(bodies).toHaveLength(1);
+    });
+  });
+
   it("keeps the session on reload (token already in sessionStorage)", async () => {
     setToken("tok-1");
     server.use(http.get(`${API}/members/me`, () => HttpResponse.json(member)));
