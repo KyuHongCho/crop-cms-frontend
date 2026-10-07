@@ -24,7 +24,7 @@ export default function AnswerView({ data }: { data: Chat }) {
           {data.answer && <p className="answer">{data.answer}</p>}
         </section>
       ) : (
-        <section aria-label="Answer">
+        <section aria-live="polite" aria-atomic="true" aria-label="Answer">
           <p className="answer">{data.answer}</p>
         </section>
       )}
