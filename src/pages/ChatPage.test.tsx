@@ -492,3 +492,62 @@ describe("S3 chat: errors", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Could not reach the server");
   });
 });
+
+describe("S3 chat: announcements and session ownership", () => {
+  it("puts a normal answer in a live region so assistive tech can announce it", async () => {
+    useMe();
+    useChat(() => HttpResponse.json(chat()));
+    const user = await openChat();
+    await ask(user);
+    expect(await screen.findByRole("status", { name: "Answer" })).toHaveTextContent("Water basil when dry [S1].");
+  });
+
+  it("a late 401 for a replaced token does not end the new session", async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((r) => (release = r));
+    server.use(
+      http.get(`${API}/members/me`, ({ request }) =>
+        HttpResponse.json({ ...member, display_name: request.headers.get("authorization") === "Bearer tok-B" ? "Bea" : "Ada" }),
+      ),
+      http.post(`${API}/members/login`, () => HttpResponse.json({ access_token: "tok-B", token_type: "bearer" })),
+      http.post(`${API}/chat`, async () => {
+        await gate;
+        return HttpResponse.json({ detail: "Not authenticated" }, { status: 401 });
+      }),
+    );
+    const user = await openChat();
+    await ask(user);
+    await screen.findByText(/Waiting for the answer/);
+    await user.click(screen.getByRole("button", { name: "Log out" }));
+    await user.type(await screen.findByLabelText("Email"), "bea@example.com");
+    await user.type(screen.getByLabelText("Password"), "pw-123456");
+    await user.click(screen.getByRole("button", { name: "Log in" }));
+    await screen.findByText(/Signed in as Bea/);
+    release();
+    await waitFor(() => expect(getToken()).toBe("tok-B"));
+    await new Promise((r) => setTimeout(r, 50));
+    expect(getToken()).toBe("tok-B");
+    expect(screen.queryByText(/session expired/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/Signed in as Bea/)).toBeInTheDocument();
+  });
+
+  it("a late 401 after logout does not put a session-expired note on the login page", async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((r) => (release = r));
+    useMe();
+    server.use(
+      http.post(`${API}/chat`, async () => {
+        await gate;
+        return HttpResponse.json({ detail: "Not authenticated" }, { status: 401 });
+      }),
+    );
+    const user = await openChat();
+    await ask(user);
+    await screen.findByText(/Waiting for the answer/);
+    await user.click(screen.getByRole("button", { name: "Log out" }));
+    await screen.findByRole("heading", { name: "Log in" });
+    release();
+    await new Promise((r) => setTimeout(r, 50));
+    expect(screen.queryByText(/session expired/i)).not.toBeInTheDocument();
+  });
+});
