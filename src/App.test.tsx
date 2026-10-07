@@ -40,7 +40,7 @@ async function logIn(email = "ada@example.com", password = "pw-123456") {
   return user;
 }
 
-describe("S1 login and session", () => {
+describe("login and session", () => {
   it("redirects to /login without a token", () => {
     renderApp("/chat");
     expect(screen.getByRole("heading", { name: "Log in" })).toBeInTheDocument();

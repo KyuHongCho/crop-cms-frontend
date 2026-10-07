@@ -57,7 +57,7 @@ function trackNetwork() {
   return calls;
 }
 
-describe("S2 signup", () => {
+describe("signup", () => {
   it("signs up, logs in with the same credentials and lands on the protected page", async () => {
     let signupBody: unknown;
     let loginBody: unknown;
