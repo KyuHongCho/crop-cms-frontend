@@ -1,6 +1,6 @@
 # crop-cms-frontend
 
-React + TypeScript SPA for the crop CMS backend. Slice S1: log in and see who you are.
+React + TypeScript SPA for the crop CMS backend. Slices so far: S1 (log in, see who you are) and S2 (sign up with an invite code).
 
 ## Run
 
@@ -12,9 +12,15 @@ The browser calls `/api/*`; the Vite dev proxy strips `/api` and forwards to `VI
 
 ## Get an account
 
-S1 has no signup UI (that is S2), and the backend seed creates no members. Create one by hand, in the
-backend repo, with an invite code (shown once). Pick your own password (8-128 characters); do not
-reuse a real one.
+The UI has a signup page at `/signup` (linked from `/login`), but signup needs an invite code and the
+backend seed creates no members, so mint the invite from the backend repo (shown once):
+
+```
+docker compose exec -T cms python -m scripts.make_invite
+```
+
+Paste the code into the signup form. Pick your own password (8-128 characters); do not reuse a real
+one. Without the UI, the same invite works with curl:
 
 ```
 CODE=$(docker compose exec -T cms python -m scripts.make_invite)
@@ -22,7 +28,7 @@ curl -X POST localhost:8000/members/signup -H 'content-type: application/json' \
   -d "{\"email\":\"you@example.com\",\"password\":\"<your-chosen-password>\",\"invite_code\":\"$CODE\"}"
 ```
 
-Then log in on the frontend with that email and password.
+Then log in with that email and password.
 
 ## Scripts
 
@@ -57,3 +63,15 @@ enables it (the `prepare` script sets `core.hooksPath`; run `npm run prepare` to
 - [ ] Log out returns to `/login`.
 - [ ] After the token expires (30 min) or is removed server-side, the next call returns you to
       `/login` with "Your session expired".
+
+## S2 manual demo checklist
+
+- [ ] Mint an invite (see "Get an account"). `/login` links to `/signup` and back.
+- [ ] Sign up with email, password, optional display name and the invite code: you land on `/chat`
+      already signed in.
+- [ ] Reusing the same code shows "Invalid or expired invite"; a new invite with an existing email
+      shows "Email already registered". (The message is the server's `detail`, shown as given.)
+- [ ] A 7-character password, a 19-character invite code or a 65-character display name is refused in
+      the browser before any request is sent (check the Network tab).
+- [ ] Leaving display name empty works (the field is omitted from the request).
+- [ ] While logged in, `/signup` redirects to `/chat`.

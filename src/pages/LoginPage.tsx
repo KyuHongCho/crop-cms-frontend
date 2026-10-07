@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import type { ApiError } from "../api/errors";
 import { isApiError } from "../api/errors";
 import { useAuth } from "../auth/AuthContext";
@@ -57,6 +57,9 @@ export default function LoginPage() {
         {error && <p role="alert">{error}</p>}
         <button type="submit" disabled={busy}>Log in</button>
       </form>
+      <p>
+        Have an invite? <Link to="/signup">Sign up</Link>
+      </p>
     </main>
   );
 }
