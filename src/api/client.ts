@@ -24,7 +24,7 @@ client.use({
     // Only a 401 for the token still in use means "session expired": a bad login carries none, and a
     // late 401 for a token the user already replaced must not end the new session.
     const sent = request.headers.get("Authorization");
-    if (response.status === 401 && sent !== null && sent === `Bearer ${getToken()}`) onUnauthorized();
+    if (response.status === 401 && sent === `Bearer ${getToken()}`) onUnauthorized();
     return response;
   },
 });

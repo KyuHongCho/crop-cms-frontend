@@ -499,7 +499,9 @@ describe("chat: announcements and session ownership", () => {
     useChat(() => HttpResponse.json(chat()));
     const user = await openChat();
     await ask(user);
-    expect(await screen.findByRole("status", { name: "Answer" })).toHaveTextContent("Water basil when dry [S1].");
+    const section = await screen.findByRole("region", { name: "Answer" });
+    expect(section).toHaveAttribute("aria-live", "polite");
+    expect(section).toHaveTextContent("Water basil when dry [S1].");
   });
 
   it("a late 401 for a replaced token does not end the new session", async () => {
