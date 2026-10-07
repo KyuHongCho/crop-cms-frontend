@@ -1,6 +1,6 @@
 # crop-cms-frontend
 
-React + TypeScript SPA for the crop CMS backend. Slices so far: S1 (log in, see who you are), S2 (sign up with an invite code) and S3 (ask a question on `/chat`).
+React + TypeScript SPA for the crop CMS backend. It covers logging in, signing up with an invite code, and asking a question on `/chat`.
 
 ## Run
 
@@ -68,7 +68,18 @@ other statuses (400/401/413/429/503).
 enables it (the `prepare` script sets `core.hooksPath`; run `npm run prepare` to do it by hand).
 `git commit --no-verify` skips it. Tests are not part of it: run `npm test` yourself.
 
-## S1 manual demo checklist
+## CI
+
+The `checks` job (install from the lockfile, typecheck, lint, tests, build) runs on pull requests to
+main and on pushes to main; it is the check to require in the branch-protection rules. It uses the
+Node version in `.nvmrc` (22.11.0), so CI tests that version and no newer one. `schema-drift`
+regenerates the API types from the backend's main and fails when the committed
+`src/api/schema.d.ts` disagrees; it is advisory, so fix it with `npm run gen:api` against the
+backend and commit the result. An advisory AI code review runs on pull requests and on a
+`/agentic-review` comment, once the `CLAUDE_CODE_OAUTH_TOKEN` repository secret exists; without it
+the review stands down quietly.
+
+## Login manual demo checklist
 
 - [ ] You have an account (see "Get an account").
 - [ ] `/chat` while logged out redirects to `/login`.
@@ -79,7 +90,7 @@ enables it (the `prepare` script sets `core.hooksPath`; run `npm run prepare` to
 - [ ] After the token expires (30 min) or is removed server-side, the next call returns you to
       `/login` with "Your session expired".
 
-## S2 manual demo checklist
+## Signup manual demo checklist
 
 - [ ] Mint an invite (see "Get an account"). `/login` links to `/signup` and back.
 - [ ] Sign up with email, password, optional display name and the invite code: you land on `/chat`
@@ -91,7 +102,7 @@ enables it (the `prepare` script sets `core.hooksPath`; run `npm run prepare` to
 - [ ] Leaving display name empty works (the field is omitted from the request).
 - [ ] While logged in, `/signup` redirects to `/chat`.
 
-## S3 manual demo checklist
+## Chat manual demo checklist
 
 A real demo needs `ANTHROPIC_API_KEY` and `OPENAI_API_KEY` in the backend `.env` (then restart the
 backend) and **spends real provider tokens**. The automated tests need neither: they use MSW.

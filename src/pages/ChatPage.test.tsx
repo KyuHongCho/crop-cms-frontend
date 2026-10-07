@@ -92,7 +92,7 @@ async function ask(user: ReturnType<typeof userEvent.setup>, text = "How often t
   await user.click(screen.getByRole("button", { name: "Ask" }));
 }
 
-describe("S3 chat: answers", () => {
+describe("chat: answers", () => {
   it("sends the trimmed question as JSON with the bearer token and shows the cited answer", async () => {
     useMe();
     let auth: string | null = null;
@@ -276,7 +276,7 @@ describe("S3 chat: answers", () => {
   });
 });
 
-describe("S3 chat: input rules", () => {
+describe("chat: input rules", () => {
   it("counts trimmed characters and blocks a whitespace-only question without a request", async () => {
     useMe();
     const calls = useChat(() => HttpResponse.json(chat()));
@@ -386,7 +386,7 @@ describe("S3 chat: input rules", () => {
   });
 });
 
-describe("S3 chat: errors", () => {
+describe("chat: errors", () => {
   it("429 shows the budget message with a reset time from Retry-After", async () => {
     useMe();
     useChat(() =>
