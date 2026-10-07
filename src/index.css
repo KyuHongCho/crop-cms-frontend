@@ -3,3 +3,9 @@ main { max-width: 32rem; margin: 3rem auto; padding: 0 1rem; }
 label { display: block; margin-bottom: 1rem; }
 input { display: block; width: 100%; padding: 0.4rem; box-sizing: border-box; }
 [role="alert"] { color: #b00020; }
+textarea { display: block; width: 100%; padding: 0.4rem; box-sizing: border-box; font: inherit; }
+.over { color: #b00020; }
+.answer, .doc-body { white-space: pre-wrap; overflow-wrap: anywhere; }
+.notice { background: #fff4d6; padding: 0.5rem 0.75rem; border-radius: 4px; }
+.muted { color: #555; font-size: 0.9em; }
+.tag { font-size: 0.85em; color: #555; }
