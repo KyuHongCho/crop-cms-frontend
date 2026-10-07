@@ -493,7 +493,7 @@ describe("S3 chat: errors", () => {
   });
 });
 
-describe("S3 chat: announcements and session ownership", () => {
+describe("chat: announcements and session ownership", () => {
   it("puts a normal answer in a live region so assistive tech can announce it", async () => {
     useMe();
     useChat(() => HttpResponse.json(chat()));
