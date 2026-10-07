@@ -1,0 +1,5 @@
+#!/bin/sh
+set -e
+
+npm run --silent typecheck || { echo "pre-commit: typecheck failed" >&2; exit 1; }
+npm run --silent lint || { echo "pre-commit: lint failed" >&2; exit 1; }

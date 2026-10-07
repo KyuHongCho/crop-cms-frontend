@@ -1,0 +1,24 @@
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { AuthProvider, RequireAuth } from "./auth/AuthContext";
+import ChatPage from "./pages/ChatPage";
+import LoginPage from "./pages/LoginPage";
+
+export function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/chat" element={<RequireAuth><ChatPage /></RequireAuth>} />
+      <Route path="*" element={<Navigate to="/chat" replace />} />
+    </Routes>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </BrowserRouter>
+  );
+}
