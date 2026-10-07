@@ -15,7 +15,7 @@ function loginMessage(e: unknown): string {
       return err.message;
     case "rate_limited":
       // login's Retry-After is the lockout time left, not chat's daily rollover.
-      return typeof err.retryAfter === "number" && err.retryAfter > 0
+      return err.retryAfter
         ? `Too many failed attempts. Try again in ${formatReset(err.retryAfter)}.`
         : "Too many failed attempts. Try again later.";
     case "unavailable":
