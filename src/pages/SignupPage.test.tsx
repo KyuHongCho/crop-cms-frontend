@@ -2,7 +2,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { MemoryRouter } from "react-router-dom";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, onTestFinished } from "vitest";
 import { AppRoutes } from "../App";
 import type { components } from "../api/schema";
 import { AuthProvider } from "../auth/AuthContext";
@@ -53,7 +53,9 @@ async function fill({ email = "new@example.com", password = "pw-123456", name = 
 
 function trackNetwork() {
   const calls: string[] = [];
-  server.events.on("request:start", ({ request }) => calls.push(request.url));
+  const onStart = ({ request }: { request: Request }) => calls.push(request.url);
+  server.events.on("request:start", onStart);
+  onTestFinished(() => server.events.removeListener("request:start", onStart));
   return calls;
 }
 
