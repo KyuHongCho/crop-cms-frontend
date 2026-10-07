@@ -261,6 +261,23 @@ export interface paths {
         patch: operations["update_member_members__member_id__patch"];
         trace?: never;
     };
+    "/members/{member_id}/unlock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Unlock Member */
+        post: operations["unlock_member_members__member_id__unlock_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/retrieval/{crop_slug}/{topic}": {
         parameters: {
             query?: never;
@@ -1391,6 +1408,35 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["MemberAdminView"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unlock_member_members__member_id__unlock_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                member_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
