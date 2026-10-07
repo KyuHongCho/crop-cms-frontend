@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, Navigate } from "react-router-dom";
 import type { ApiError } from "../api/errors";
 import { isApiError } from "../api/errors";
+import { formatReset } from "../api/format";
 import { useAuth } from "../auth/AuthContext";
 
 function loginMessage(e: unknown): string {
@@ -12,6 +13,11 @@ function loginMessage(e: unknown): string {
       return "Incorrect email or password";
     case "validation":
       return err.message;
+    case "rate_limited":
+      // login's Retry-After is the lockout time left, not chat's daily rollover.
+      return err.retryAfter
+        ? `Too many failed attempts. Try again in ${formatReset(err.retryAfter)}.`
+        : "Too many failed attempts. Try again later.";
     case "unavailable":
       return "Service unavailable, try again later.";
     default:
