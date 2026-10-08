@@ -91,8 +91,18 @@ not under `docs/`, so it is not confused with this file, which holds engineering
   paint by an inline script in `index.html`. The script and
   [`ThemeProvider`](../src/theme/ThemeProvider.tsx) repeat a few lines, because the script must run
   before the bundle loads.
-- **Only the login and signup pages are fully restyled so far.** The Ask page has shadcn buttons and a
-  textarea inside the old layout; its legacy classes live in a temporary block in `src/index.css`.
+- **The shell owns `<main>`.** [`AppShell`](../src/shell/AppShell.tsx) renders the 56px bar and then the
+  one `<main>` with the routed page inside it, so a page must not render its own. Login and signup sit
+  outside the shell and keep theirs. The member menu
+  ([`MemberMenu`](../src/shell/MemberMenu.tsx)) holds the email, the theme radio group and "Log out".
+- **`/members/me` is fetched once per session, in the shell.**
+  [`MemberProvider`](../src/auth/MemberContext.tsx) is keyed by the token, so a replaced session never
+  shows the previous member, and a response for an old token is dropped. The Ask page reads the member
+  from it and calls `refresh()` after an answer, so the request count is unchanged. Its error texts
+  ("Could not load your profile (N).", "Could not reach the server.") are shown in the shell.
+- **Only the login, signup and shell are fully restyled so far.** The Ask page has shadcn buttons and a
+  textarea inside the old layout; its legacy classes live in a temporary block in `src/index.css`. The
+  Library route is a placeholder heading.
 
 ## Dev proxy and CORS
 
@@ -195,7 +205,9 @@ requires those outputs to be `success`.
 src/
   api/         client.ts (openapi-fetch + auth middleware), errors.ts, format.ts, schema.d.ts (generated),
                errors.test.ts, format.test.ts
-  auth/        AuthContext.tsx (login, logout, route guard), token.ts (sessionStorage), token.test.ts
+  auth/        AuthContext.tsx (login, logout, route guard), MemberContext.tsx (/members/me),
+               token.ts (sessionStorage), token.test.ts
+  shell/       AppShell.tsx (top bar, nav, main), MemberMenu.tsx, AppShell.test.tsx
   pages/       LoginPage.tsx, SignupPage.tsx, ChatPage.tsx, ChatPage.test.tsx, SignupPage.test.tsx,
                LoginPage.test.tsx
   components/  AnswerView.tsx, Citations.tsx, FormError.tsx, brand/Logo.tsx,

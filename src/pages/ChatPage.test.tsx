@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { MemoryRouter } from "react-router-dom";
@@ -172,7 +172,8 @@ describe("chat: answers", () => {
       const user = await openChat();
       await ask(user);
       await screen.findByText("Basil watering");
-      expect(screen.queryByRole("link")).not.toBeInTheDocument();
+      const citations = screen.getByRole("region", { name: "Citations" });
+      expect(within(citations).queryByRole("link")).not.toBeInTheDocument();
     },
   );
 
@@ -520,7 +521,8 @@ describe("chat: announcements and session ownership", () => {
     const user = await openChat();
     await ask(user);
     await screen.findByText(/Waiting for the answer/);
-    await user.click(screen.getByRole("button", { name: "Log out" }));
+    await user.click(screen.getByRole("button", { name: /^Account/ }));
+    await user.click(await screen.findByRole("menuitem", { name: "Log out" }));
     await user.type(await screen.findByLabelText("Email"), "bea@example.com");
     await user.type(screen.getByLabelText("Password"), "pw-123456");
     await user.click(screen.getByRole("button", { name: "Log in" }));
@@ -546,7 +548,8 @@ describe("chat: announcements and session ownership", () => {
     const user = await openChat();
     await ask(user);
     await screen.findByText(/Waiting for the answer/);
-    await user.click(screen.getByRole("button", { name: "Log out" }));
+    await user.click(screen.getByRole("button", { name: /^Account/ }));
+    await user.click(await screen.findByRole("menuitem", { name: "Log out" }));
     await screen.findByRole("heading", { name: "Log in" });
     release();
     await new Promise((r) => setTimeout(r, 50));

@@ -17,17 +17,24 @@ schema migrated for login and signup, and the demo corpus seeded and embedded fo
 - [ ] A login error shows an icon and the text, not colour alone.
 - [ ] Ask page: a multi-line answer keeps its line breaks; the counter turns red past
       2000 characters; Ask, Retry and Show text look like buttons.
-- [ ] The theme follows the OS setting. (The switch itself arrives with the app shell.)
+- [ ] The top bar at 375px and 1280px wide: one row, 56px tall; below 640px only the sprout shows (no
+      wordmark) and nothing overflows.
+- [ ] Member menu by keyboard only: Tab to the account button, Enter opens it, arrow keys move between
+      Light / Dark / System / Log out, Enter selects, Escape closes and returns focus to the button.
+- [ ] Choose Dark in the menu, reload: it stays dark with no flash. Choose System and change the OS
+      setting: the page follows without a reload.
+- [ ] The current page (Ask or Library) is underlined in the nav; the logo and wordmark go to `/chat`.
 
 ## Login
 
 - [ ] You have an account (mint an invite and sign up, as in the Quickstart).
 - [ ] `/chat` while logged out redirects to `/login`.
 - [ ] A wrong password (or unknown email) shows "Incorrect email or password".
-- [ ] A valid login lands on `/chat`, showing your name or email and "Tokens used today: N / M".
+- [ ] A valid login lands on `/chat`, showing your name or email in the account button and, under the
+      title, "Signed in as … · Tokens used today: N / M". The menu shows "Signed in as <email>".
 - [ ] Reload keeps you signed in. This holds only in the same tab: the token is in `sessionStorage`,
       so a new tab or a restarted browser asks you to log in again.
-- [ ] Log out returns to `/login`.
+- [ ] Log out (in the account menu at the top right) returns to `/login`.
 - [ ] After the token expires (30 min) or is removed server-side, the next call returns you to
       `/login` with "Your session expired".
 - [ ] Lockout: once the backend's default limit of 10 failed login attempts (`LOGIN_MAX_FAILURES`) is

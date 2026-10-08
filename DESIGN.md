@@ -1,8 +1,8 @@
 # Design system — Crop CMS ("Field, sage")
 
 Section 2 (tokens, contrast, colour rules) states exactly what the app ships; sections 3 to 13
-describe the target design, and parts of it (answer layout, top bar, sources panel, status chips, member
-menu) are not built yet. Two tests keep it true: `src/design/tokens.test.ts`
+describe the target design, and parts of it (answer layout, sources panel, status chips) are not built
+yet. Two tests keep it true: `src/design/tokens.test.ts`
 (colours and contrast) and `src/design/ui-classes.test.ts` (which generated classes and variants may
 be rendered). Change the app and this file together.
 
@@ -232,7 +232,9 @@ key text (`[S1]`), not by the ochre colour.
 
 - 4px grid: 4 / 8 / 12 / 16 / 24 / 32 / 48.
 - Gutters 16 / 24 / 32px at base / `sm` / `lg`.
-- 56px top bar.
+- 56px top bar (`src/shell/AppShell.tsx`): logo and wordmark linking to `/chat`, the nav "Ask · Library",
+  and the member menu at the right. Below `sm` the wordmark is hidden so the bar stays one row. The shell
+  owns the page's one `<main>`; pages render inside it and must not add another.
 - Sources panel about 360px from `lg` (1024px and up), stacked below that.
 
 ## 6. Radius, borders, elevation
@@ -245,7 +247,7 @@ key text (`[S1]`), not by the ochre colour.
 
 ## 8. Icons
 
-lucide-react: 16px inline and 20px in the top bar, `aria-hidden` beside visible text.
+lucide-react: 16px inline, 20px for the account icon in the top bar, `aria-hidden` beside visible text.
 
 | State | Tone | Icon |
 |---|---|---|
@@ -274,6 +276,7 @@ mark's height on every side. The same mark is `public/favicon.svg`.
 - `ThemeProvider` wraps the routes in `AppRoutes`; `useTheme` throws outside it; a missing
   `matchMedia` is tolerated.
 - Dark applies the `.dark` class on `<html>`; `color-scheme` follows it.
+- The choice is made in the member menu, as a Light / Dark / System radio group.
 
 ## 11. Components
 
@@ -290,7 +293,9 @@ mark's height on every side. The same mark is `public/favicon.svg`.
 - D9: Alert is for errors only, because it carries `role="alert"`. Notices and neutral states use
   `StatusChip` or a notice block with `role="status"`.
 - D11: see section 2.
-- Every trigger's accessible name contains its visible label (Label in Name).
+- Every trigger's accessible name contains its visible label (Label in Name). The member menu trigger
+  reads "Account: <name>" (the "Account: " part is screen-reader-only) and "Account" until the profile
+  has loaded.
 
 ## 12. i18n readiness
 

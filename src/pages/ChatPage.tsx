@@ -1,14 +1,13 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { client } from "../api/client";
 import { isApiError, normaliseError, type ApiError } from "../api/errors";
 import { formatReset } from "../api/format";
 import type { components } from "../api/schema";
-import { useAuth } from "../auth/AuthContext";
+import { useMember } from "../auth/MemberContext";
 import AnswerView from "../components/AnswerView";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
-type Member = components["schemas"]["MemberResponse"];
 type Chat = components["schemas"]["ChatResponse"];
 type Result = { answer: Chat } | { error: ApiError } | { offline: true } | null;
 
@@ -32,38 +31,12 @@ function errorMessage(err: ApiError): string {
 }
 
 export default function ChatPage() {
-  const { logout } = useAuth();
-  const [member, setMember] = useState<Member | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { member, refresh: refreshMember } = useMember();
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<Result>(null);
   const [lastAsked, setLastAsked] = useState("");
   const inFlight = useRef(false);
-
-  useEffect(() => {
-    let live = true;
-    client
-      .GET("/members/me")
-      .then(({ data, response }) => {
-        if (!live) return;
-        if (data) setMember(data);
-        else if (response.status !== 401) setError(`Could not load your profile (${response.status}).`);
-      })
-      .catch(() => live && setError("Could not reach the server."));
-    return () => {
-      live = false;
-    };
-  }, []);
-
-  async function refreshMember() {
-    try {
-      const { data } = await client.GET("/members/me");
-      if (data) setMember(data);
-    } catch {
-      // the indicator stays on its last value; the answer is already shown
-    }
-  }
 
   const trimmed = question.trim();
   // The server counts code points (pydantic), not UTF-16 units; emoji would otherwise count twice.
@@ -103,15 +76,13 @@ export default function ChatPage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-      <h1 className="mb-4 text-2xl leading-tight font-semibold">Chat</h1>
+    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+      <h1 className="mb-4 text-2xl leading-tight font-semibold">Ask</h1>
       {member && (
-        <p>
-          Signed in as {member.display_name || member.email}. Tokens used today:{" "}
-          {member.tokens_used_today} / {member.tokens_budget_daily}
+        <p className="mb-4 text-sm text-muted-foreground">
+          {`Signed in as ${member.display_name || member.email} · Tokens used today: ${member.tokens_used_today} / ${member.tokens_budget_daily}`}
         </p>
       )}
-      {error && <p role="alert">{error}</p>}
       <form onSubmit={onSubmit}>
         <label className="mb-1.5 block text-sm font-medium">
           Question
@@ -143,7 +114,6 @@ export default function ChatPage() {
           )}
         </div>
       )}
-      <Button variant="outline" className="mt-6" onClick={logout}>Log out</Button>
-    </main>
+    </div>
   );
 }
