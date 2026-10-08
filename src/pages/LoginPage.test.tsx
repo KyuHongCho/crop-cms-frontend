@@ -28,3 +28,17 @@ it("shows the login error with an aria-hidden icon beside the text", async () =>
   expect(alert).toHaveTextContent("Incorrect email or password");
   expect(alert.querySelector("svg[aria-hidden]")).not.toBeNull();
 });
+
+it.each([
+  ["/login", "Log in · Crop CMS"],
+  ["/signup", "Sign up · Crop CMS"],
+])("%s sets the document title", (path, title) => {
+  render(
+    <MemoryRouter initialEntries={[path]}>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </MemoryRouter>,
+  );
+  expect(document.title).toBe(title);
+});

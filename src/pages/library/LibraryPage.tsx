@@ -1,12 +1,14 @@
 import { Link } from "react-router-dom";
 import { fetchCrops, useLoad } from "./libraryApi";
-import { EmptyNote, LibraryError, LibraryLayout, LoadingBlock } from "./parts";
+import { useDocumentTitle } from "../../lib/useDocumentTitle";
+import { EmptyNote, LibraryError, LibraryLayout, LoadingBlock, PageHeading } from "./parts";
 
 export default function LibraryPage() {
   const state = useLoad(fetchCrops);
+  useDocumentTitle("Library");
   return (
     <LibraryLayout>
-      <h1 className="mb-4 text-2xl leading-tight font-semibold">Library</h1>
+      <PageHeading className="mb-4">Library</PageHeading>
       <p className="mb-6 text-sm text-muted-foreground">Published documents the answers draw on, by crop and topic.</p>
       {state.status === "loading" && <LoadingBlock label="Loading crops..." />}
       {state.status === "error" && <LibraryError error={state.error} notFound="Crops were not found." />}

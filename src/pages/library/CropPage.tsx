@@ -2,9 +2,8 @@ import { useCallback } from "react";
 import { Link, useParams } from "react-router-dom";
 import { normaliseError } from "../../api/errors";
 import { fetchCrops, fetchItems, useLoad } from "./libraryApi";
-import { BackLink, EmptyNote, LibraryError, LibraryLayout, LoadingBlock } from "./parts";
-
-const plural = (n: number) => (n === 1 ? "1 document" : `${n} documents`);
+import { useDocumentTitle } from "../../lib/useDocumentTitle";
+import { BackLink, documentCount, EmptyNote, LibraryError, LibraryLayout, LoadingBlock, PageHeading } from "./parts";
 
 export default function CropPage() {
   const { cropSlug = "" } = useParams();
@@ -21,15 +20,21 @@ export default function CropPage() {
   }, [cropSlug]);
   const state = useLoad(load);
   const missing = `No crop named "${cropSlug}".`;
+  const name = state.status === "ok" ? state.data.crop.common_name : cropSlug;
+  useDocumentTitle(name, "Library");
 
   return (
     <LibraryLayout>
       <BackLink to="/library">Back to Library</BackLink>
+      <PageHeading>{name}</PageHeading>
       {state.status === "loading" && <LoadingBlock label="Loading topics..." />}
-      {state.status === "error" && <LibraryError error={state.error} notFound={missing} />}
+      {state.status === "error" && (
+        <div className="mt-4">
+          <LibraryError error={state.error} notFound={missing} />
+        </div>
+      )}
       {state.status === "ok" && (
         <>
-          <h1 className="text-2xl leading-tight font-semibold">{state.data.crop.common_name}</h1>
           <em className="mt-1 mb-6 block text-sm text-muted-foreground">{state.data.crop.scientific_name}</em>
           {state.data.topics.length === 0 ? (
             <EmptyNote>No published topics for this crop yet.</EmptyNote>
@@ -42,7 +47,7 @@ export default function CropPage() {
                     className="flex items-baseline justify-between gap-4 rounded-xl border bg-card p-4 text-card-foreground outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring"
                   >
                     <span className="font-medium">{topic}</span>
-                    <span className="shrink-0 text-sm text-muted-foreground">{plural(n)}</span>
+                    <span className="shrink-0 text-sm text-muted-foreground">{documentCount(n)}</span>
                   </Link>
                 </li>
               ))}

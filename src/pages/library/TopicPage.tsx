@@ -2,25 +2,33 @@ import { useCallback } from "react";
 import { useParams } from "react-router-dom";
 import SourceCard from "../../components/sources/SourceCard";
 import { fetchTopicSet, useLoad } from "./libraryApi";
-import { BackLink, EmptyNote, LibraryError, LibraryLayout, LoadingBlock } from "./parts";
+import { useDocumentTitle } from "../../lib/useDocumentTitle";
+import { BackLink, documentCount, EmptyNote, LibraryError, LibraryLayout, LoadingBlock, PageHeading } from "./parts";
 
 export default function TopicPage() {
   const { cropSlug = "", topic = "" } = useParams();
   const load = useCallback(() => fetchTopicSet(cropSlug, topic), [cropSlug, topic]);
   const state = useLoad(load);
+  useDocumentTitle(topic, cropSlug, "Library");
+  // A route miss is also a 404; only the backend's "crop '<slug>' not found" says the crop is the missing part.
+  const cropMissing =
+    state.status === "error" && state.error?.status === 404 && /^crop .* not found$/.test(state.error.message) && state.error.message.includes(cropSlug)
+      ? `No crop named "${cropSlug}".`
+      : undefined;
 
   return (
     <LibraryLayout>
       <BackLink to={`/library/${encodeURIComponent(cropSlug)}`}>{`Back to ${cropSlug}`}</BackLink>
-      <h1 className="text-2xl leading-tight font-semibold">{topic}</h1>
+      <PageHeading>{topic}</PageHeading>
       <div className="mt-6">
         {state.status === "loading" && <LoadingBlock label="Loading documents..." />}
-        {state.status === "error" && <LibraryError error={state.error} notFound={`No crop named "${cropSlug}".`} />}
+        {state.status === "error" && <LibraryError error={state.error} notFound={cropMissing} />}
         {state.status === "ok" && (
           <>
             <p className="mb-4 text-sm text-muted-foreground">
-              {state.data.document_count === 1 ? "1 document" : `${state.data.document_count} documents`}
+              {documentCount(state.data.document_count)}
             </p>
+            <h2 className="sr-only">Documents</h2>
             {state.data.documents.length === 0 ? (
               <EmptyNote>No published documents for this topic.</EmptyNote>
             ) : (

@@ -310,14 +310,15 @@ mark's height on every side. The same mark is `public/favicon.svg`.
 - Not rendered: Button `secondary` / `destructive`; Badge `destructive` / `outline` / `ghost` / `link`;
   destructive menu items; `aria-invalid` styling. Using any of these later means measuring it first
   and adding a row to the table.
-- D9: Alert is for errors only, because it carries `role="alert"`. Notices and neutral states use
+- **Alert is for errors only**, because it carries `role="alert"`. Notices and neutral states use
   `StatusChip` or a notice block with `role="status"`. The 429 budget message is the exception that
   stays `role="alert"`, drawn as a notice block (row 18) with `Hourglass`.
 - `StatusChip` is Badge `secondary` (neutral, row 3) or the local Badge `notice` variant
   (`bg-notice text-notice-foreground`, row 18), with a 16px icon beside the text.
 - Citation markers in the answer are ochre (`text-cite`, row 15) links to `#source-<key>`; the source
-  card is focusable and takes focus when the marker is activated.
-- D11: see section 2.
+  card is focusable and takes focus when the marker is activated. Library cards have no marker and
+  are neither focusable nor ringed.
+- Edits to generated `ui/` files: see D11 in section 2.
 - Every trigger's accessible name contains its visible label (Label in Name). The member menu trigger
   reads "Account: <name>" (the "Account: " part is screen-reader-only) and "Account" until the profile
   has loaded.

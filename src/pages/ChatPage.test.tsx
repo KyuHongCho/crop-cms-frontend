@@ -92,6 +92,14 @@ async function ask(user: ReturnType<typeof userEvent.setup>, text = "How often t
   await user.click(screen.getByRole("button", { name: "Ask" }));
 }
 
+describe("chat: page title", () => {
+  it("sets the Ask document title", async () => {
+    useMe();
+    await openChat();
+    expect(document.title).toBe("Ask · Crop CMS");
+  });
+});
+
 describe("chat: answers", () => {
   it("sends the trimmed question as JSON with the bearer token and shows the cited answer", async () => {
     useMe();

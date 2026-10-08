@@ -11,6 +11,7 @@ import SourcesPanel from "../components/sources/SourcesPanel";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import { useDocumentTitle } from "@/lib/useDocumentTitle";
 import { cn } from "@/lib/utils";
 
 type Chat = components["schemas"]["ChatResponse"];
@@ -36,6 +37,7 @@ function errorMessage(err: ApiError): string {
 }
 
 export default function ChatPage() {
+  useDocumentTitle("Ask");
   const { member, refresh: refreshMember } = useMember();
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);

@@ -35,8 +35,10 @@ export default function AppShell() {
       </header>
       <main>
         {error && (
-          <div className="mx-auto max-w-3xl px-4 pt-6 sm:px-6 lg:px-8">
-            <FormError>{error}</FormError>
+          <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-6 lg:px-8">
+            <div className="max-w-3xl">
+              <FormError>{error}</FormError>
+            </div>
           </div>
         )}
         <Outlet />

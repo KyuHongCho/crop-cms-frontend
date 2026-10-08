@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useDocumentTitle } from "@/lib/useDocumentTitle";
 
 // Mirrors MemberCreate in the backend; the server stays the authority (422 is still shown).
 // The email rule is exactly the server's, no stricter. Lengths count code points like pydantic.
@@ -29,6 +30,7 @@ function validate(f: Fields): string | null {
 }
 
 export default function SignupPage() {
+  useDocumentTitle("Sign up");
   const { token, login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

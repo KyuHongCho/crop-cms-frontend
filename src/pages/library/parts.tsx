@@ -1,11 +1,35 @@
 import { ArrowLeft, CircleSlash, WifiOff, type LucideIcon } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useEffect, useRef } from "react";
+import { Link, useLocation, useNavigationType } from "react-router-dom";
 import type { ApiError } from "../../api/errors";
 import FormError from "../../components/FormError";
 import { Skeleton } from "@/components/ui/skeleton";
 
+export const documentCount = (n: number) => (n === 1 ? "1 document" : `${n} documents`);
+
 export function LibraryLayout({ children }: { children: React.ReactNode }) {
-  return <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">{children}</div>;
+  return (
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="max-w-3xl">{children}</div>
+    </div>
+  );
+}
+
+// Following a link unmounts it and drops focus to <body>; focus moves on only if it was lost (a nav click keeps its own),
+// and never on POP (first load, reload, back/forward), where the browser or the user already chose the place.
+export function PageHeading({ className, children }: { className?: string; children: React.ReactNode }) {
+  const ref = useRef<HTMLHeadingElement>(null);
+  const { pathname } = useLocation();
+  const navType = useNavigationType();
+  useEffect(() => {
+    if (navType === "POP") return;
+    if (document.activeElement === document.body || document.activeElement === null) ref.current?.focus();
+  }, [pathname, navType]);
+  return (
+    <h1 ref={ref} tabIndex={-1} className={`text-2xl leading-tight font-semibold outline-none ${className ?? ""}`.trim()}>
+      {children}
+    </h1>
+  );
 }
 
 export function BackLink({ to, children }: { to: string; children: React.ReactNode }) {
@@ -40,7 +64,7 @@ export function EmptyNote({ icon: Icon = CircleSlash, children }: { icon?: Lucid
   );
 }
 
-export function LibraryError({ error, notFound }: { error: ApiError | null; notFound: string }) {
+export function LibraryError({ error, notFound }: { error: ApiError | null; notFound?: string }) {
   if (error === null) return <FormError icon={WifiOff}>Could not reach the server.</FormError>;
-  return <FormError>{error.status === 404 ? notFound : error.message}</FormError>;
+  return <FormError>{error.status === 404 && notFound ? notFound : error.message}</FormError>;
 }

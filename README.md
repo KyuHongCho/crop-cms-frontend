@@ -14,12 +14,13 @@ Stack: React 19, TypeScript, Vite, Tailwind CSS 4 with shadcn/ui components (Rad
 **complete** and answers crop questions with citations. This app is the first consumer of that API,
 and it makes those guarantees visible to a user:
 
-- **Citations** show the source, reference and link, whether the document was read first-hand or
+- **Citations**, listed in the Sources panel beside the answer, show the source, reference and link,
+  whether the document was read first-hand or
   through another source, the crop label, the condition and licence note when there are any, and the
   full text on request.
 - **"No answer" is a state, not an error.** A declined question and a question with no relevant
   topic both show it, with the reason.
-- **A "cut off" banner** appears when the response's `truncated` flag is set, and only then.
+- **A "cut off" chip** appears when the response's `truncated` flag is set, and only then.
 - **Dropped topics are named**, so a reader sees what was left out to fit the size limit.
 - **The daily token budget message** says when the budget resets.
 - **The Library** shows the same complete, published document set a chat answer draws on, by crop and

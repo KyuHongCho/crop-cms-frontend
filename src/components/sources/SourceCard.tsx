@@ -2,6 +2,7 @@ import { useState } from "react";
 import { BookOpenCheck, Forward } from "lucide-react";
 import type { components } from "../../api/schema";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { sourceId } from "./sourceLinks";
 
 // The key exists only on cited documents; retrieval documents have none.
@@ -23,8 +24,8 @@ export default function SourceCard({ doc }: { doc: Doc }) {
   return (
     <li
       id={doc.key ? sourceId(doc.key) : undefined}
-      tabIndex={-1}
-      className="rounded-xl border bg-card p-4 text-sm text-card-foreground outline-none focus:ring-3 focus:ring-ring"
+      tabIndex={doc.key ? -1 : undefined}
+      className={cn("rounded-xl border bg-card p-4 text-sm text-card-foreground outline-none", doc.key && "focus:ring-3 focus:ring-ring")}
     >
       <h3 className="font-medium">
         {doc.key && <span className="mr-2 text-cite">{`[${doc.key}]`}</span>}

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useDocumentTitle } from "@/lib/useDocumentTitle";
 
 function loginMessage(e: unknown): string {
   if (!isApiError(e)) return "Could not reach the server. Try again.";
@@ -34,6 +35,7 @@ function loginMessage(e: unknown): string {
 
 export default function LoginPage() {
   const { token, sessionExpired, login } = useAuth();
+  useDocumentTitle("Log in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);

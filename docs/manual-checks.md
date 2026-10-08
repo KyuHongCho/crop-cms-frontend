@@ -38,6 +38,10 @@ Read-only; it calls `GET /crops`, `/items` and `/retrieval/...` and writes nothi
 - [ ] `/library/nope` shows "No crop named "nope"." with an alert icon and a link back.
 - [ ] A topic over the size limit (hard to arrange on the demo corpus) shows the server's message.
 - [ ] Logged out, `/library` goes to login.
+- [ ] Keyboard only: Enter on a crop, then on a topic, then on "Back to ...": focus lands on the new
+      page's heading each time (no ring), and Tab continues from there into the page.
+- [ ] The tab title changes per page ("Library · Crop CMS", "<crop> · Library · Crop CMS", ...).
+- [ ] At 1280px the Library heading, the profile error (if any) and the Ask heading line up with the logo.
 - [ ] Layout at 375px and 1280px in light and dark: one column, nothing clipped, skeletons visible
       while loading (throttle the network to see them).
 

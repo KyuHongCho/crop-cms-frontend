@@ -81,10 +81,12 @@ not under `docs/`, so it is not confused with this file, which holds engineering
   mode is the `.dark` class on `<html>`.
 - **Two tests keep it true.** [`tokens.test.ts`](../src/design/tokens.test.ts) parses
   `src/index.css`, computes every row of the contrast table, and compares it with `DESIGN.md`.
-  [`ui-classes.test.ts`](../src/design/ui-classes.test.ts) fails if a generated component brings back one of the classes D11 removed, or the app renders a
-  variant the table leaves out.
+  [`ui-classes.test.ts`](../src/design/ui-classes.test.ts) fails if a generated component brings
+  back one of the classes D11 removed (DESIGN.md section 2), or the app renders a variant the table
+  leaves out.
   `DESIGN.md` lists what that guard cannot see.
-- **D11: a few generated lines are edited by hand,** for contrast only: `ring-ring/50` to `ring-ring`,
+- **A few generated lines are edited by hand (D11, defined in [DESIGN.md](../DESIGN.md) section 2),**
+  for contrast only: `ring-ring/50` to `ring-ring`,
   `hover:bg-primary/80` to `/90`, and `border-border` to `border-input` on the outline Button. A later
   `npx shadcn add` can bring them back; the guard test then fails.
 - **Theme.** `light | dark | system`, stored in `localStorage` under `crop-cms-theme`, and set before
@@ -113,15 +115,15 @@ not under `docs/`, so it is not confused with this file, which holds engineering
   global component classes are gone.
 - **The Library is read-only and reuses the source card.** The pages in
   [`src/pages/library/`](../src/pages/library/) are `/library` (crops), `/library/:cropSlug` (topics)
-  and `/library/:cropSlug/:topic` (documents), each one column of at most 48rem inside the shell's
-  `<main>`. The document list uses
+  and `/library/:cropSlug/:topic` (documents), each one column of at most 48rem, left-aligned inside
+  the same 72rem container as the top bar, within the shell's `<main>`. The document list uses
   [`SourceCard`](../src/components/sources/SourceCard.tsx), whose key (`[S1]`, `id`) is optional
   because retrieval documents have none.
-- **D1: the Library sits behind `RequireAuth`.** The shell (member menu, logout, budget) presumes a
+- **The Library sits behind `RequireAuth`.** The shell (member menu, logout, budget) presumes a
   member, and the audience is invite-only members. This is a UI choice, not a security boundary: the
   backend's `GET /crops`, `/items` and `/retrieval/...` take no auth dependency, so anyone can read
   them without a token.
-- **D2: only published documents appear.** Topics come from `GET /items` filtered to
+- **Only published documents appear.** Topics come from `GET /items` filtered to
   `published === true && topic != null`, grouped per crop (the endpoint has no crop filter, and
   items carry `crop_id`, which is matched against `/crops`). A topic's documents and its
   `document_count` come from `GET /retrieval/{crop}/{topic}`, the same published set chat answers
@@ -132,7 +134,17 @@ not under `docs/`, so it is not confused with this file, which holds engineering
   Acceptable at about 60 items; the Library filters drafts out, but the API still exposes them.
 - **Library errors.** A 404 crop shows "No crop named ..." with an alert icon and a link back; a 413
   shows the server's own message; loading shows skeletons with a status line. A topic that exists
-  nowhere returns 200 with zero documents, shown as an empty note.
+  nowhere returns 200 with zero documents, shown as an empty note. On the topic page a 404 reads
+  "No crop named ..." only when its detail names the crop (the backend's `crop '<slug>' not found`);
+  any other 404 shows the server's message. The offline text on the Library pages is
+  "Could not reach the server." without "Try again.", unlike Ask, login and signup, because the Library has no retry control.
+- **Page titles and focus.** Each page sets `document.title` ("Library · Crop CMS",
+  "<crop> · Library · Crop CMS", ...) through
+  [`useDocumentTitle`](../src/lib/useDocumentTitle.ts). Library pages render an h1 with
+  `tabIndex={-1}`, and when the route changes it takes focus only if focus was lost to `<body>` (the
+  followed link unmounted); a nav click keeps focus on the nav link. A first load, a
+  reload and back/forward leave focus alone; only in-app links move it. That h1 has no ring,
+  because it is not a control.
 
 ## Dev proxy and CORS
 
@@ -236,7 +248,7 @@ src/
   api/         client.ts (openapi-fetch + auth middleware), errors.ts, format.ts, schema.d.ts (generated),
                errors.test.ts, format.test.ts
   auth/        AuthContext.tsx (login, logout, route guard), MemberContext.tsx (/members/me),
-               token.ts (sessionStorage), token.test.ts
+               token.ts (sessionStorage), token.test.ts, MemberContext.test.tsx
   shell/       AppShell.tsx (top bar, nav, main), MemberMenu.tsx, AppShell.test.tsx
   pages/       LoginPage.tsx, SignupPage.tsx, ChatPage.tsx, ChatPage.test.tsx, SignupPage.test.tsx,
                LoginPage.test.tsx,
@@ -246,7 +258,7 @@ src/
                answer/ (AnswerView.tsx, StatusChip.tsx, citeText.tsx + test),
                sources/ (SourcesPanel.tsx, SourceCard.tsx, sourceLinks.ts),
                ui/ (generated shadcn components; by hand: the D11 edits and the Badge `notice` variant)
-  lib/         utils.ts (re-exports cn)
+  lib/         utils.ts (re-exports cn), useDocumentTitle.ts
   theme/       ThemeProvider.tsx, ThemeProvider.test.tsx
   design/      contrast.ts, tokens.test.ts, ui-classes.test.ts (keep DESIGN.md true)
   test/        server.ts (MSW), setup.ts (unhandled-request guard, storage and theme reset)

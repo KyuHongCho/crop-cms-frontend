@@ -231,4 +231,173 @@ describe("Library", () => {
     renderAt("/library", false);
     expect(await screen.findByRole("heading", { name: "Log in" })).toBeInTheDocument();
   });
+
+  it("keeps the heading order without a skipped level on the topic page", async () => {
+    server.use(http.get(`${API}/retrieval/:crop/:topic`, () => HttpResponse.json(topicSet([doc(1), doc(2)]))));
+    renderAt("/library/basil/watering-needs");
+    await screen.findByRole("list", { name: "Documents" });
+    const levels = screen.getAllByRole("heading").map((h) => Number(h.tagName.slice(1)));
+    expect(levels[0]).toBe(1);
+    levels.slice(1).forEach((l, i) => expect(l - levels[i]).toBeLessThanOrEqual(1));
+    expect(levels).toContain(3);
+  });
+
+  it("moves focus to the new page's h1 after Enter on a crop link and on a topic link", async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.get(`${API}/crops`, () => HttpResponse.json(crops)),
+      http.get(`${API}/items`, () => HttpResponse.json([item(1, {})])),
+      http.get(`${API}/retrieval/:crop/:topic`, () => HttpResponse.json(topicSet([doc(1)]))),
+    );
+    renderAt("/library");
+    const cropLink = await screen.findByRole("link", { name: /basil/ });
+    cropLink.focus();
+    await user.keyboard("{Enter}");
+    const cropH1 = await screen.findByRole("heading", { level: 1, name: "basil" });
+    expect(document.activeElement).toBe(cropH1);
+
+    const topicLink = await screen.findByRole("link", { name: /watering-needs/ });
+    topicLink.focus();
+    await user.keyboard("{Enter}");
+    const topicH1 = await screen.findByRole("heading", { level: 1, name: "watering-needs" });
+    expect(document.activeElement).toBe(topicH1);
+
+    const back = screen.getByRole("link", { name: "Back to basil" });
+    back.focus();
+    await user.keyboard("{Enter}");
+    expect(document.activeElement).toBe(await screen.findByRole("heading", { level: 1, name: "basil" }));
+  });
+
+  it("does not take focus from the nav link that opened the Library", async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.get(`${API}/crops`, () => HttpResponse.json(crops)),
+      http.get(`${API}/chat`, () => HttpResponse.json({})),
+    );
+    renderAt("/chat");
+    const nav = await screen.findByRole("link", { name: "Library" });
+    nav.focus();
+    await user.keyboard("{Enter}");
+    await screen.findByRole("heading", { level: 1, name: "Library" });
+    expect(document.activeElement).toBe(nav);
+  });
+
+  it("always shows an h1 on an unknown or unreachable crop page", async () => {
+    server.use(
+      http.get(`${API}/crops`, () => HttpResponse.json(crops)),
+      http.get(`${API}/items`, () => HttpResponse.json([])),
+    );
+    renderAt("/library/nope");
+    await screen.findByRole("alert");
+    expect(screen.getByRole("heading", { level: 1, name: "nope" })).toBeInTheDocument();
+  });
+
+  it("keeps the h1 when the crop page is offline", async () => {
+    server.use(
+      http.get(`${API}/crops`, () => HttpResponse.error()),
+      http.get(`${API}/items`, () => HttpResponse.json([])),
+    );
+    renderAt("/library/basil");
+    await screen.findByRole("alert");
+    expect(screen.getByRole("heading", { level: 1, name: "basil" })).toBeInTheDocument();
+  });
+
+  it("sets a document title per page", async () => {
+    server.use(
+      http.get(`${API}/crops`, () => HttpResponse.json(crops)),
+      http.get(`${API}/items`, () => HttpResponse.json([item(1, {})])),
+      http.get(`${API}/retrieval/:crop/:topic`, () => HttpResponse.json(topicSet([doc(1)]))),
+    );
+    const user = userEvent.setup();
+    renderAt("/library");
+    await screen.findByRole("link", { name: /basil/ });
+    expect(document.title).toBe("Library · Crop CMS");
+    await user.click(screen.getByRole("link", { name: /basil/ }));
+    await screen.findByRole("link", { name: /watering-needs/ });
+    expect(document.title).toBe("basil · Library · Crop CMS");
+    await user.click(screen.getByRole("link", { name: /watering-needs/ }));
+    await screen.findByRole("list", { name: "Documents" });
+    expect(document.title).toBe("watering-needs · basil · Library · Crop CMS");
+  });
+
+  it("says 1 document, not 1 documents, on the crop page and the topic page", async () => {
+    server.use(
+      http.get(`${API}/crops`, () => HttpResponse.json(crops)),
+      http.get(`${API}/items`, () => HttpResponse.json([item(1, {})])),
+      http.get(`${API}/retrieval/:crop/:topic`, () => HttpResponse.json(topicSet([doc(1)]))),
+    );
+    const user = userEvent.setup();
+    renderAt("/library/basil");
+    const link = await screen.findByRole("link", { name: /watering-needs/ });
+    expect(link).toHaveTextContent(/(^|[^\d])1 document$/);
+    await user.click(link);
+    expect(await screen.findByText("1 document")).toBeInTheDocument();
+  });
+
+  it("shows an empty note for a topic with no documents", async () => {
+    server.use(http.get(`${API}/retrieval/:crop/:topic`, () => HttpResponse.json(topicSet([]))));
+    renderAt("/library/basil/unknown-topic");
+    expect(await screen.findByText("No published documents for this topic.")).toBeInTheDocument();
+    expect(screen.getByText("0 documents")).toBeInTheDocument();
+  });
+
+  it("shows an empty note when there are no crops", async () => {
+    server.use(http.get(`${API}/crops`, () => HttpResponse.json([])));
+    renderAt("/library");
+    expect(await screen.findByText("No crops yet.")).toBeInTheDocument();
+  });
+
+  it("shows the server's message when a topic 404 does not name the crop", async () => {
+    server.use(http.get(`${API}/retrieval/:crop/:topic`, () => HttpResponse.json({ detail: "Not Found" }, { status: 404 })));
+    renderAt("/library/basil/a%20b%2Fc");
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("Not Found");
+    expect(alert).not.toHaveTextContent("No crop named");
+  });
+
+  it("does not focus or ring a Library card on click", async () => {
+    const user = userEvent.setup();
+    server.use(http.get(`${API}/retrieval/:crop/:topic`, () => HttpResponse.json(topicSet([doc(1)]))));
+    renderAt("/library/basil/watering-needs");
+    const heading = await screen.findByRole("heading", { name: "Doc 1" });
+    const card = heading.closest("li")!;
+    expect(card).not.toHaveAttribute("tabindex");
+    await user.click(heading);
+    expect(document.activeElement).not.toBe(card);
+  });
+
+  it("leaves focus on the body on a fresh load of a Library page", async () => {
+    server.use(http.get(`${API}/crops`, () => HttpResponse.json(crops)));
+    renderAt("/library");
+    await screen.findByRole("heading", { level: 1, name: "Library" });
+    await screen.findByRole("link", { name: /kale/ });
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  it("leaves focus on the body when a Library entry is restored (reload or back/forward)", async () => {
+    setToken("tok-1");
+    server.use(
+      http.get(`${API}/members/me`, () => HttpResponse.json(member)),
+      http.get(`${API}/crops`, () => HttpResponse.json(crops)),
+    );
+    render(
+      <MemoryRouter initialEntries={[{ pathname: "/library", key: "restored" }]}>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </MemoryRouter>,
+    );
+    await screen.findByRole("link", { name: /kale/ });
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  it("shows the server's message when a topic 404 names a different crop", async () => {
+    server.use(
+      http.get(`${API}/retrieval/:crop/:topic`, () => HttpResponse.json({ detail: "crop 'kale' not found" }, { status: 404 })),
+    );
+    renderAt("/library/basil/watering-needs");
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("crop 'kale' not found");
+    expect(alert).not.toHaveTextContent("No crop named");
+  });
 });
