@@ -22,6 +22,9 @@ and it makes those guarantees visible to a user:
 - **A "cut off" banner** appears when the response's `truncated` flag is set, and only then.
 - **Dropped topics are named**, so a reader sees what was left out to fit the size limit.
 - **The daily token budget message** says when the budget resets.
+- **The Library** shows the same complete, published document set a chat answer draws on, by crop and
+  topic, with the provenance of each document; drafts are never listed. A topic too large to return
+  whole shows the server's refusal instead of a cut-down list.
 
 The structured half of the planned chat, crop suitability from climate data, lives in
 [crop-climate-advisor](https://github.com/KyuHongCho/crop-climate-advisor).
@@ -39,6 +42,7 @@ The structured half of the planned chat, crop suitability from climate data, liv
 | API types generated from the backend's OpenAPI, committed, with a drift check in CI | Browser end-to-end tests |
 | CI (a required `checks` job) and an advisory AI review on pull requests | |
 | A pre-commit hook (typecheck, then lint) | |
+| A read-only Library at `/library`: crops, each crop's published topics with counts, and a topic's complete document set as source cards (login required in the UI; the API reads are public) | |
 
 ## Engineering highlights
 

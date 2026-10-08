@@ -25,6 +25,22 @@ schema migrated for login and signup, and the demo corpus seeded and embedded fo
       setting: the page follows without a reload.
 - [ ] The current page (Ask or Library) is underlined in the nav; the logo and wordmark go to `/chat`.
 
+## Library
+
+Read-only; it calls `GET /crops`, `/items` and `/retrieval/...` and writes nothing.
+
+- [ ] Nav "Library" opens `/library`: all 7 crops, each with its scientific name in italics.
+- [ ] Open basil: its topics are listed with counts, and the draft item (13, "DRAFT -- basil
+      propagation...") is absent. Basil `propagation` shows 1 document, not 2, and the topic page agrees.
+- [ ] Open `basil/watering-needs`: "3 documents" and three source cards without a `[S1]` key; "Show
+      text" expands the body as plain text; the Network tab shows `/api/retrieval/basil/watering-needs`.
+- [ ] A document whose url is not http(s) is shown as text, not a link.
+- [ ] `/library/nope` shows "No crop named "nope"." with an alert icon and a link back.
+- [ ] A topic over the size limit (hard to arrange on the demo corpus) shows the server's message.
+- [ ] Logged out, `/library` goes to login.
+- [ ] Layout at 375px and 1280px in light and dark: one column, nothing clipped, skeletons visible
+      while loading (throttle the network to see them).
+
 ## Login
 
 - [ ] You have an account (mint an invite and sign up, as in the Quickstart).

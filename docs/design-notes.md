@@ -110,7 +110,29 @@ not under `docs/`, so it is not confused with this file, which holds engineering
   answer card ([`AnswerView`](../src/components/answer/AnswerView.tsx), 68ch) beside the panel
   ([`SourcesPanel`](../src/components/sources/SourcesPanel.tsx), 360px from `lg`). The `answer` class on
   the answer paragraph is only a test hook; its styling is Tailwind utilities, and the old
-  global component classes are gone. The Library route is a placeholder heading.
+  global component classes are gone.
+- **The Library is read-only and reuses the source card.** The pages in
+  [`src/pages/library/`](../src/pages/library/) are `/library` (crops), `/library/:cropSlug` (topics)
+  and `/library/:cropSlug/:topic` (documents), each one column of at most 48rem inside the shell's
+  `<main>`. The document list uses
+  [`SourceCard`](../src/components/sources/SourceCard.tsx), whose key (`[S1]`, `id`) is optional
+  because retrieval documents have none.
+- **D1: the Library sits behind `RequireAuth`.** The shell (member menu, logout, budget) presumes a
+  member, and the audience is invite-only members. This is a UI choice, not a security boundary: the
+  backend's `GET /crops`, `/items` and `/retrieval/...` take no auth dependency, so anyone can read
+  them without a token.
+- **D2: only published documents appear.** Topics come from `GET /items` filtered to
+  `published === true && topic != null`, grouped per crop (the endpoint has no crop filter, and
+  items carry `crop_id`, which is matched against `/crops`). A topic's documents and its
+  `document_count` come from `GET /retrieval/{crop}/{topic}`, the same published set chat answers
+  from. The count beside a topic on the crop page is the number of published items in `/items`; the
+  topic page shows the server's count. Topic links use `encodeURIComponent`.
+- **Backend observation, no change made:** `GET /items` returns unpublished drafts to anyone without
+  auth (a draft item was visible on the live backend), and sends every body just to list topics.
+  Acceptable at about 60 items; the Library filters drafts out, but the API still exposes them.
+- **Library errors.** A 404 crop shows "No crop named ..." with an alert icon and a link back; a 413
+  shows the server's own message; loading shows skeletons with a status line. A topic that exists
+  nowhere returns 200 with zero documents, shown as an empty note.
 
 ## Dev proxy and CORS
 
@@ -217,7 +239,9 @@ src/
                token.ts (sessionStorage), token.test.ts
   shell/       AppShell.tsx (top bar, nav, main), MemberMenu.tsx, AppShell.test.tsx
   pages/       LoginPage.tsx, SignupPage.tsx, ChatPage.tsx, ChatPage.test.tsx, SignupPage.test.tsx,
-               LoginPage.test.tsx
+               LoginPage.test.tsx,
+               library/ (LibraryPage.tsx, CropPage.tsx, TopicPage.tsx, parts.tsx, libraryApi.ts,
+               Library.test.tsx)
   components/  FormError.tsx, brand/Logo.tsx,
                answer/ (AnswerView.tsx, StatusChip.tsx, citeText.tsx + test),
                sources/ (SourcesPanel.tsx, SourceCard.tsx, sourceLinks.ts),

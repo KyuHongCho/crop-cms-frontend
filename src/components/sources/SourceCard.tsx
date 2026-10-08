@@ -4,7 +4,8 @@ import type { components } from "../../api/schema";
 import { Button } from "@/components/ui/button";
 import { sourceId } from "./sourceLinks";
 
-type Doc = components["schemas"]["CitedDocument"];
+// The key exists only on cited documents; retrieval documents have none.
+type Doc = Omit<components["schemas"]["CitedDocument"], "key"> & { key?: string };
 
 // Model-adjacent text may carry any scheme (javascript:, data:); only http(s) becomes a link.
 export function safeHttpUrl(raw: string): string | null {
@@ -21,12 +22,12 @@ export default function SourceCard({ doc }: { doc: Doc }) {
   const href = safeHttpUrl(doc.url);
   return (
     <li
-      id={sourceId(doc.key)}
+      id={doc.key ? sourceId(doc.key) : undefined}
       tabIndex={-1}
       className="rounded-xl border bg-card p-4 text-sm text-card-foreground outline-none focus:ring-3 focus:ring-ring"
     >
       <h3 className="font-medium">
-        <span className="mr-2 text-cite">{`[${doc.key}]`}</span>
+        {doc.key && <span className="mr-2 text-cite">{`[${doc.key}]`}</span>}
         {doc.title}
       </h3>
       {doc.crop_slug && <p className="mt-1 text-muted-foreground">{`Crop: ${doc.crop_slug}`}</p>}

@@ -23,7 +23,7 @@ const member: components["schemas"]["MemberResponse"] = {
 
 function renderShell(path = "/chat", me: () => Response = () => HttpResponse.json(member)) {
   setToken("tok-1");
-  server.use(http.get(`${API}/members/me`, me));
+  server.use(http.get(`${API}/members/me`, me), http.get(`${API}/crops`, () => HttpResponse.json([])));
   render(
     <MemoryRouter initialEntries={[path]}>
       <AuthProvider>
@@ -55,7 +55,7 @@ describe("app shell", () => {
     await screen.findByText(/Signed in as Ada/);
   });
 
-  it("routes to the Library placeholder from the nav and back through the logo", async () => {
+  it("routes to the Library page from the nav and back through the logo", async () => {
     const user = renderShell("/chat");
     await screen.findByText(/Signed in as Ada/);
     await user.click(within(screen.getByRole("navigation", { name: "Main" })).getByRole("link", { name: "Library" }));

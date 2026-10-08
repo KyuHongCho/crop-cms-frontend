@@ -1,7 +1,7 @@
 # Design system — Crop CMS ("Field, sage")
 
 Section 2 (tokens, contrast, colour rules) states exactly what the app ships; sections 3 to 13
-describe the target design, and parts of it (the Library pages, react-i18next) are not built yet.
+describe the design, which is built except react-i18next.
 Two tests keep it true: `src/design/tokens.test.ts`
 (colours and contrast) and `src/design/ui-classes.test.ts` (which generated classes and variants may
 be rendered). Change the app and this file together.
@@ -224,7 +224,8 @@ No state relies on colour alone. Every state has an icon and text. Citations are
 key text (`[S1]`), not by the ochre colour; a marker in the answer is also underlined. On the Ask page
 that means: the over-limit counter (`CircleAlert`), the status chips (`CircleSlash`, `Scissors`,
 `ListMinus`), the budget block (`Hourglass`), errors (`CircleAlert`, or `WifiOff` offline) and each
-source's provenance line (`BookOpenCheck`, `Forward`).
+source's provenance line (`BookOpenCheck`, `Forward`). On the Library pages: errors
+(`CircleAlert`, `WifiOff` offline) and empty lists (`CircleSlash`).
 
 ## 4. Typography
 
@@ -245,6 +246,15 @@ source's provenance line (`BookOpenCheck`, `Forward`).
 - Ask page (`src/pages/ChatPage.tsx`): the answer card (`src/components/answer/`) in a column of at most
   68ch, and the sources panel (`src/components/sources/`) about 360px wide beside it from `lg`
   (1024px and up), stacked below that.
+- Library pages (`src/pages/library/`): one column of at most `max-w-3xl` (48rem) inside the shell's
+  `<main>`. `/library` lists crops as bordered cards (common name, scientific name in italics);
+  `/library/:cropSlug` lists published topics with a document count; `/library/:cropSlug/:topic`
+  shows "N documents" and the documents as source cards in a list, without the `[S1]` key. The crop
+  and topic pages have a "Back to ..." link above their heading. Loading shows skeletons with a status line; 404, 413 and
+  other errors use `FormError` (icon and text); an empty topic list or document list is a status line
+  with an icon. Rows use `hover:bg-muted` (rows 3 and 6), not a translucent class.
+  The Library sits behind `RequireAuth` as a UI choice, not a security boundary: `GET /crops`,
+  `GET /items` and `GET /retrieval/...` are public.
 
 ## 6. Radius, borders, elevation
 
@@ -252,7 +262,7 @@ source's provenance line (`BookOpenCheck`, `Forward`).
 
 ## 7. Motion
 
-150ms fades. `prefers-reduced-motion: reduce` removes animations and transitions.
+Colour transitions run 150ms; menus fade and zoom in over 100ms. `prefers-reduced-motion: reduce` removes both.
 
 ## 8. Icons
 
@@ -266,6 +276,7 @@ lucide-react: 16px inline, 20px for the account icon in the top bar, `aria-hidde
 | Budget (429) | notice | `Hourglass` |
 | Error | destructive | `CircleAlert` |
 | Offline | destructive | `WifiOff` |
+| Empty list | neutral | `CircleSlash` |
 | Read first-hand | — | `BookOpenCheck` |
 | Via another source | — | `Forward` |
 | Informational notice (session expired, account created) | notice | `Info` |
