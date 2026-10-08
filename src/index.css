@@ -114,16 +114,3 @@
     scroll-behavior: auto !important;
   }
 }
-
-/* Legacy ChatPage hooks in token colours; temporary until the Ask page is rebuilt. */
-@layer components {
-  .answer, .doc-body { white-space: pre-wrap; overflow-wrap: anywhere; }
-  .over, p[role="alert"] { color: var(--destructive); }
-  .notice {
-    background: var(--notice);
-    color: var(--notice-foreground);
-    padding: 0.5rem 0.75rem;
-    border-radius: 0.25rem;
-  }
-  .muted, .tag { color: var(--muted-foreground); font-size: 0.875rem; }
-}

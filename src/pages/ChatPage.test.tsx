@@ -102,7 +102,7 @@ describe("chat: answers", () => {
     });
     const user = await openChat();
     await ask(user, "  How often to water basil?  ");
-    expect(await screen.findByText("Water basil when dry [S1].")).toBeInTheDocument();
+    expect(await screen.findByRole("region", { name: "Answer" })).toHaveTextContent("Water basil when dry [S1].");
     expect(calls).toEqual([{ question: "How often to water basil?" }]);
     expect(auth).toBe("Bearer tok-1");
     expect(screen.getByText("Basil watering")).toBeInTheDocument();
@@ -124,8 +124,9 @@ describe("chat: answers", () => {
     );
     const user = await openChat();
     await ask(user);
-    expect(await screen.findByText("[S1]")).toBeInTheDocument();
-    expect(screen.getByText("[S2]")).toBeInTheDocument();
+    const sources = within(await screen.findByRole("region", { name: "Citations" }));
+    expect(sources.getByText("[S1]")).toBeInTheDocument();
+    expect(sources.getByText("[S2]")).toBeInTheDocument();
     expect(screen.queryByText("[41]")).not.toBeInTheDocument();
     expect(screen.queryByText("[87]")).not.toBeInTheDocument();
   });
@@ -277,6 +278,101 @@ describe("chat: answers", () => {
   });
 });
 
+describe("chat: answer card, chips and markers", () => {
+  it("links a known marker to its source card and moves focus there", async () => {
+    useMe();
+    useChat(() => HttpResponse.json(chat({ answer: "Water basil when dry [S1, S9]." })));
+    const user = await openChat();
+    await ask(user);
+    const answer = await screen.findByRole("region", { name: "Answer" });
+    const link = within(answer).getByRole("link", { name: "S1" });
+    expect(link).toHaveAttribute("href", "#source-S1");
+    expect(within(answer).getAllByRole("link")).toHaveLength(1);
+    expect(answer).toHaveTextContent("Water basil when dry [S1, S9].");
+    await user.click(link);
+    expect(document.getElementById("source-S1")).toHaveFocus();
+  });
+
+  it("keeps html literal next to markers", async () => {
+    useMe();
+    useChat(() => HttpResponse.json(chat({ answer: "<b>bold</b> see [S1] <script>1</script>" })));
+    const user = await openChat();
+    await ask(user);
+    const answer = await screen.findByRole("region", { name: "Answer" });
+    expect(answer).toHaveTextContent("<b>bold</b> see [S1] <script>1</script>");
+    expect(answer.querySelector("b, script")).toBeNull();
+  });
+
+  it("gives the cut-off and dropped chips an icon and text", async () => {
+    useMe();
+    useChat(() =>
+      HttpResponse.json(
+        chat({ truncated: true, dropped: [{ topic: "soil", score: 0.3, document_count: 2, context_chars: 7000 }] }),
+      ),
+    );
+    const user = await openChat();
+    await ask(user);
+    for (const re of [/cut off and may be incomplete/, /left out to fit the size limit: soil/]) {
+      const chip = await screen.findByText(re);
+      expect(chip.querySelector("svg[aria-hidden='true']")).not.toBeNull();
+    }
+  });
+
+  it("gives the no-answer chip an icon", async () => {
+    useMe();
+    useChat(() => HttpResponse.json(chat({ answer: "", documents: [], abstained: { reason: "out_of_scope" } })));
+    const user = await openChat();
+    await ask(user);
+    const status = await screen.findByRole("status", { name: "No answer" });
+    const chip = within(status).getByText("No answer");
+    expect(chip.querySelector("svg[aria-hidden='true']")).not.toBeNull();
+  });
+
+  it("shows a 429 as an alert with an icon", async () => {
+    useMe();
+    useChat(() =>
+      HttpResponse.json({ detail: "Daily token budget exhausted" }, { status: 429, headers: { "Retry-After": "10800" } }),
+    );
+    const user = await openChat();
+    await ask(user);
+    const alert = await screen.findByRole("alert");
+    expect(alert.querySelector("svg.lucide-hourglass[aria-hidden='true']")).not.toBeNull();
+    expect(alert).toHaveTextContent("Daily budget used up.");
+  });
+
+  it("gives other errors an icon and text", async () => {
+    useMe();
+    useChat(() => HttpResponse.json({ detail: "x" }, { status: 503 }));
+    const user = await openChat();
+    await ask(user);
+    const alert = await screen.findByRole("alert");
+    expect(alert.querySelector("svg.lucide-circle-alert[aria-hidden='true']")).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
+  });
+
+  it("shows the offline error with the WifiOff icon", async () => {
+    useMe();
+    useChat(() => HttpResponse.error());
+    const user = await openChat();
+    await ask(user);
+    const alert = await screen.findByRole("alert");
+    expect(alert.querySelector("svg.lucide-wifi-off[aria-hidden='true']")).not.toBeNull();
+    expect(alert).toHaveTextContent("Could not reach the server");
+  });
+
+  it("shows the over-limit counter with an icon, and none within the limit", async () => {
+    useMe();
+    await openChat();
+    const box = screen.getByLabelText("Question");
+    const counter = () => document.getElementById("question-count")!;
+    fireEvent.change(box, { target: { value: "a".repeat(2000) } });
+    expect(counter().querySelector("svg")).toBeNull();
+    fireEvent.change(box, { target: { value: "a".repeat(2001) } });
+    expect(counter().querySelector("svg[aria-hidden='true']")).not.toBeNull();
+    expect(counter()).toHaveTextContent("2001 / 2000 characters");
+  });
+});
+
 describe("chat: input rules", () => {
   it("counts trimmed characters and blocks a whitespace-only question without a request", async () => {
     useMe();
@@ -308,7 +404,7 @@ describe("chat: input rules", () => {
     fireEvent.change(box, { target: { value: `  ${"a".repeat(2000)}  ` } });
     expect(screen.getByRole("button", { name: "Ask" })).toBeEnabled();
     fireEvent.click(screen.getByRole("button", { name: "Ask" }));
-    await screen.findByText("Water basil when dry [S1].");
+    expect(await screen.findByRole("region", { name: "Answer" })).toHaveTextContent("Water basil when dry [S1].");
     expect(calls).toEqual([{ question: "a".repeat(2000) }]);
   });
 
@@ -328,7 +424,7 @@ describe("chat: input rules", () => {
     fireEvent.change(box, { target: { value: "😀".repeat(1500) } });
     expect(screen.getByText(/^1500 \/ 2000 characters/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Ask" }));
-    await screen.findByText("Water basil when dry [S1].");
+    expect(await screen.findByRole("region", { name: "Answer" })).toHaveTextContent("Water basil when dry [S1].");
     expect(calls).toEqual([{ question: "😀".repeat(1500) }]);
   });
 
@@ -350,7 +446,7 @@ describe("chat: input rules", () => {
     expect(screen.getByRole("button", { name: "Ask" })).toBeDisabled();
     await waitFor(() => expect(calls).toHaveLength(1));
     release();
-    await screen.findByText("Water basil when dry [S1].");
+    expect(await screen.findByRole("region", { name: "Answer" })).toHaveTextContent("Water basil when dry [S1].");
     expect(calls).toHaveLength(1);
     expect(screen.queryByText(/Waiting for the answer/)).not.toBeInTheDocument();
   });
@@ -410,7 +506,7 @@ describe("chat: errors", () => {
     await ask(user, "first");
     expect(await screen.findByRole("alert")).toHaveTextContent("Daily budget used up.");
     await user.click(screen.getByRole("button", { name: "Ask" }));
-    expect(await screen.findByText("Water basil when dry [S1].")).toBeInTheDocument();
+    expect(await screen.findByRole("region", { name: "Answer" })).toHaveTextContent("Water basil when dry [S1].");
     expect(calls).toEqual([{ question: "first" }, { question: "first" }]);
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(screen.queryByText(/Daily budget used up/)).not.toBeInTheDocument();
@@ -462,7 +558,7 @@ describe("chat: errors", () => {
     await ask(user, "  water basil?  ");
     expect(await screen.findByRole("alert")).toHaveTextContent("Service unavailable, try later.");
     await user.click(screen.getByRole("button", { name: "Retry" }));
-    expect(await screen.findByText("Water basil when dry [S1].")).toBeInTheDocument();
+    expect(await screen.findByRole("region", { name: "Answer" })).toHaveTextContent("Water basil when dry [S1].");
     expect(calls).toEqual([{ question: "water basil?" }, { question: "water basil?" }]);
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });

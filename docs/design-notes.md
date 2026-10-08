@@ -63,7 +63,7 @@ The remaining exposure is script injection, so the app avoids the ways model or 
 become markup: there is no `dangerouslySetInnerHTML`, answers and citations render as plain text,
 and a citation URL becomes a link only when it parses as `http` or `https`, with
 `rel="noopener noreferrer"`.
-[`src/components/Citations.tsx`](../src/components/Citations.tsx)
+[`src/components/sources/SourceCard.tsx`](../src/components/sources/SourceCard.tsx)
 
 **A 401 ends the session only when the request's token is the one currently stored.** Otherwise a
 late 401 for a token the user already replaced (log out, log in again while a request is in flight)
@@ -100,9 +100,17 @@ not under `docs/`, so it is not confused with this file, which holds engineering
   shows the previous member, and a response for an old token is dropped. The Ask page reads the member
   from it and calls `refresh()` after an answer, so the request count is unchanged. Its error texts
   ("Could not load your profile (N).", "Could not reach the server.") are shown in the shell.
-- **Only the login, signup and shell are fully restyled so far.** The Ask page has shadcn buttons and a
-  textarea inside the old layout; its legacy classes live in a temporary block in `src/index.css`. The
-  Library route is a placeholder heading.
+- **Citation markers mirror the backend's parser.** [`citeText`](../src/components/answer/citeText.tsx)
+  finds each `[...]` group, then each `S<digits>` inside it, as `dispatch.py` does, so `[S1]` and
+  `[S1, S2]` both work. A key that was sent becomes a link to `#source-<key>`; brackets, commas and
+  unknown keys such as `[S9]` stay text, and the characters rendered equal the model's text. The link
+  moves focus to the source card in script, because a bare fragment link does not reliably focus it.
+  A bare `S1` outside brackets is left as text. There is no HTML parsing.
+- **The Ask page is one card plus a sources panel.** [`ChatPage`](../src/pages/ChatPage.tsx) lays the
+  answer card ([`AnswerView`](../src/components/answer/AnswerView.tsx), 68ch) beside the panel
+  ([`SourcesPanel`](../src/components/sources/SourcesPanel.tsx), 360px from `lg`). The `answer` class on
+  the answer paragraph is only a test hook; its styling is Tailwind utilities, and the old
+  global component classes are gone. The Library route is a placeholder heading.
 
 ## Dev proxy and CORS
 
@@ -210,8 +218,10 @@ src/
   shell/       AppShell.tsx (top bar, nav, main), MemberMenu.tsx, AppShell.test.tsx
   pages/       LoginPage.tsx, SignupPage.tsx, ChatPage.tsx, ChatPage.test.tsx, SignupPage.test.tsx,
                LoginPage.test.tsx
-  components/  AnswerView.tsx, Citations.tsx, FormError.tsx, brand/Logo.tsx,
-               ui/ (generated shadcn components; only the D11 edits are made by hand)
+  components/  FormError.tsx, brand/Logo.tsx,
+               answer/ (AnswerView.tsx, StatusChip.tsx, citeText.tsx + test),
+               sources/ (SourcesPanel.tsx, SourceCard.tsx, sourceLinks.ts),
+               ui/ (generated shadcn components; by hand: the D11 edits and the Badge `notice` variant)
   lib/         utils.ts (re-exports cn)
   theme/       ThemeProvider.tsx, ThemeProvider.test.tsx
   design/      contrast.ts, tokens.test.ts, ui-classes.test.ts (keep DESIGN.md true)

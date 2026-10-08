@@ -1,8 +1,8 @@
 # Design system — Crop CMS ("Field, sage")
 
 Section 2 (tokens, contrast, colour rules) states exactly what the app ships; sections 3 to 13
-describe the target design, and parts of it (answer layout, sources panel, status chips) are not built
-yet. Two tests keep it true: `src/design/tokens.test.ts`
+describe the target design, and parts of it (the Library pages, react-i18next) are not built yet.
+Two tests keep it true: `src/design/tokens.test.ts`
 (colours and contrast) and `src/design/ui-classes.test.ts` (which generated classes and variants may
 be rendered). Change the app and this file together.
 
@@ -187,6 +187,10 @@ Every other translucent class in the generated files gets no row:
 
 Re-running `shadcn add` can bring these back; the guard test fails when it does.
 
+One further hand edit is not for contrast: `badge.tsx` has a local variant
+`notice: "bg-notice text-notice-foreground"` (row 18), which `StatusChip` uses. A `shadcn add badge`
+re-run would remove it, and typecheck would then fail on `variant="notice"`.
+
 ### What the guard test does and does not catch
 
 `src/design/ui-classes.test.ts` fails when:
@@ -217,7 +221,10 @@ translucent class that is rendered.
 ## 3. Colour-blind rule
 
 No state relies on colour alone. Every state has an icon and text. Citations are identified by their
-key text (`[S1]`), not by the ochre colour.
+key text (`[S1]`), not by the ochre colour; a marker in the answer is also underlined. On the Ask page
+that means: the over-limit counter (`CircleAlert`), the status chips (`CircleSlash`, `Scissors`,
+`ListMinus`), the budget block (`Hourglass`), errors (`CircleAlert`, or `WifiOff` offline) and each
+source's provenance line (`BookOpenCheck`, `Forward`).
 
 ## 4. Typography
 
@@ -235,7 +242,9 @@ key text (`[S1]`), not by the ochre colour.
 - 56px top bar (`src/shell/AppShell.tsx`): logo and wordmark linking to `/chat`, the nav "Ask · Library",
   and the member menu at the right. Below `sm` the wordmark is hidden so the bar stays one row. The shell
   owns the page's one `<main>`; pages render inside it and must not add another.
-- Sources panel about 360px from `lg` (1024px and up), stacked below that.
+- Ask page (`src/pages/ChatPage.tsx`): the answer card (`src/components/answer/`) in a column of at most
+  68ch, and the sources panel (`src/components/sources/`) about 360px wide beside it from `lg`
+  (1024px and up), stacked below that.
 
 ## 6. Radius, borders, elevation
 
@@ -291,7 +300,12 @@ mark's height on every side. The same mark is `public/favicon.svg`.
   destructive menu items; `aria-invalid` styling. Using any of these later means measuring it first
   and adding a row to the table.
 - D9: Alert is for errors only, because it carries `role="alert"`. Notices and neutral states use
-  `StatusChip` or a notice block with `role="status"`.
+  `StatusChip` or a notice block with `role="status"`. The 429 budget message is the exception that
+  stays `role="alert"`, drawn as a notice block (row 18) with `Hourglass`.
+- `StatusChip` is Badge `secondary` (neutral, row 3) or the local Badge `notice` variant
+  (`bg-notice text-notice-foreground`, row 18), with a 16px icon beside the text.
+- Citation markers in the answer are ochre (`text-cite`, row 15) links to `#source-<key>`; the source
+  card is focusable and takes focus when the marker is activated.
 - D11: see section 2.
 - Every trigger's accessible name contains its visible label (Label in Name). The member menu trigger
   reads "Account: <name>" (the "Account: " part is screen-reader-only) and "Account" until the profile

@@ -65,6 +65,14 @@ need none of that: they use MSW.
 - [ ] Log in. In-scope crop question (for example "How often should I water basil?"): a cited
       answer appears, with citations showing title, source, reference and a link (only for
       http/https urls). "Show text" expands the document body as plain text.
+- [ ] The answer card and the Sources panel: the panel sits to the right (about 360px) from 1024px
+      and stacks below the answer under it. Check 375, 768 and 1280px in light and dark.
+- [ ] Citation markers: `[S1]` shows the key in ochre with an underline; Tab to the key, press
+      Enter, and focus lands on the matching source card (a visible ring). `[S1, S2]` gives two
+      links. A key that was not sent, such as `[S9]`, is plain text.
+- [ ] Over 2000 characters, the counter turns red and shows an alert icon beside the text.
+- [ ] Cut off, left-out topics and "No answer" each show an icon and text in a chip; the 429
+      budget message shows an hourglass in an amber block.
 - [ ] The answer is announced as a polite live region labelled "Answer". This is confirmed in the
       DOM by a test; screen-reader output has not been checked.
 - [ ] After the answer, "Tokens used today" has gone up (it is refetched from `/members/me`).

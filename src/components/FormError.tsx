@@ -1,10 +1,10 @@
-import { CircleAlert } from "lucide-react";
+import { CircleAlert, type LucideIcon } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-export default function FormError({ children }: { children: React.ReactNode }) {
+export default function FormError({ children, icon: Icon = CircleAlert }: { children: React.ReactNode; icon?: LucideIcon }) {
   return (
     <Alert variant="destructive">
-      <CircleAlert aria-hidden="true" />
+      <Icon aria-hidden="true" />
       <AlertDescription>{children}</AlertDescription>
     </Alert>
   );

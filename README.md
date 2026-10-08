@@ -55,7 +55,7 @@ The structured half of the planned chat, crop suitability from climate data, liv
   [`src/api/client.ts`](src/api/client.ts) · [`src/pages/ChatPage.test.tsx`](src/pages/ChatPage.test.tsx) · [why](docs/design-notes.md#token-storage-and-sessions)
 - **Model and document text is rendered as plain text.** There is no `dangerouslySetInnerHTML`, and
   a link is made only for `http(s)` addresses, with `rel="noopener noreferrer"`.
-  [`src/components/AnswerView.tsx`](src/components/AnswerView.tsx) · [`src/components/Citations.tsx`](src/components/Citations.tsx) · [why](docs/design-notes.md#token-storage-and-sessions)
+  [`src/components/answer/AnswerView.tsx`](src/components/answer/AnswerView.tsx) · [`src/components/answer/citeText.tsx`](src/components/answer/citeText.tsx) · [`src/components/sources/SourceCard.tsx`](src/components/sources/SourceCard.tsx) · [why](docs/design-notes.md#token-storage-and-sessions)
 - **The question counter counts code points like the server, not UTF-16 units.** An emoji counts
   once, as it does on the server.
   [`src/pages/ChatPage.tsx`](src/pages/ChatPage.tsx) · [why](docs/design-notes.md#trade-offs-and-known-limits)
