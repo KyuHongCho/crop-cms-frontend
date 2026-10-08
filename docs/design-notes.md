@@ -17,7 +17,9 @@ file or documented next to the code it concerns.
   unmeasured on a GitHub runner. [More below](#testing-details)
 - **The live-region behaviour is confirmed in the DOM only.** The answer is a polite, atomic live
   region; a test asserts `aria-live` and the label, while `aria-atomic` and screen-reader output are
-  unverified.
+  unverified. A separate status region exists from first paint and receives the "Answer ready."
+  text, so completion is a change to an existing region; whether a screen reader then announces the
+  answer once or twice is unchecked.
   [`src/pages/ChatPage.test.tsx`](../src/pages/ChatPage.test.tsx)
 - **Field limits are mirrored by hand.** `openapi-typescript` does not emit limits such as
   `max_length`, so the forms repeat the server's numbers; the server stays the authority and its

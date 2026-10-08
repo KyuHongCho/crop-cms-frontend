@@ -112,13 +112,17 @@ export default function ChatPage() {
           Ask
         </Button>
       </form>
-      {loading && (
-        <div role="status" className="mt-8 max-w-[68ch] space-y-3">
-          <Skeleton aria-hidden="true" className="h-4 w-full" />
-          <Skeleton aria-hidden="true" className="h-4 w-5/6" />
-          <p className="text-sm text-muted-foreground">Waiting for the answer...</p>
-        </div>
-      )}
+      <div role="status" className={loading ? "mt-8 max-w-[68ch] space-y-3" : "sr-only"}>
+        {loading ? (
+          <>
+            <Skeleton aria-hidden="true" className="h-4 w-full" />
+            <Skeleton aria-hidden="true" className="h-4 w-5/6" />
+            <p className="text-sm text-muted-foreground">Waiting for the answer...</p>
+          </>
+        ) : (
+          result && "answer" in result && (result.answer.abstained ? "No answer was given." : "Answer ready.")
+        )}
+      </div>
       {result && "answer" in result && (
         <div
           className={cn(

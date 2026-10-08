@@ -132,7 +132,7 @@ describe("chat: answers", () => {
     );
     const user = await openChat();
     await ask(user);
-    const sources = within(await screen.findByRole("region", { name: "Citations" }));
+    const sources = within(await screen.findByRole("region", { name: "Sources" }));
     expect(sources.getByText("[S1]")).toBeInTheDocument();
     expect(sources.getByText("[S2]")).toBeInTheDocument();
     expect(screen.queryByText("[41]")).not.toBeInTheDocument();
@@ -181,7 +181,7 @@ describe("chat: answers", () => {
       const user = await openChat();
       await ask(user);
       await screen.findByText("Basil watering");
-      const citations = screen.getByRole("region", { name: "Citations" });
+      const citations = screen.getByRole("region", { name: "Sources" });
       expect(within(citations).queryByRole("link")).not.toBeInTheDocument();
     },
   );
@@ -215,7 +215,7 @@ describe("chat: answers", () => {
     await ask(user);
     expect(await screen.findByRole("status", { name: "No answer" })).toHaveTextContent(line);
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-    expect(screen.queryByRole("region", { name: "Citations" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Sources" })).not.toBeInTheDocument();
   });
 
   it("shows the server answer text inside the abstained state when present", async () => {
@@ -324,6 +324,21 @@ describe("chat: answer card, chips and markers", () => {
       const chip = await screen.findByText(re);
       expect(chip.querySelector("svg[aria-hidden='true']")).not.toBeNull();
     }
+  });
+
+  it("announces the left-out topics as a status", async () => {
+    useMe();
+    useChat(() =>
+      HttpResponse.json(
+        chat({ truncated: true, dropped: [{ topic: "soil", score: 0.3, document_count: 2, context_chars: 7000 }] }),
+      ),
+    );
+    const user = await openChat();
+    await ask(user);
+    await screen.findByText(/cut off and may be incomplete/);
+    const statuses = screen.getAllByRole("status");
+    expect(statuses.some((s) => /left out to fit the size limit: soil/.test(s.textContent ?? ""))).toBe(true);
+    expect(statuses.some((s) => /cut off and may be incomplete/.test(s.textContent ?? ""))).toBe(true);
   });
 
   it("gives the no-answer chip an icon", async () => {
@@ -607,6 +622,19 @@ describe("chat: announcements and session ownership", () => {
     const section = await screen.findByRole("region", { name: "Answer" });
     expect(section).toHaveAttribute("aria-live", "polite");
     expect(section).toHaveTextContent("Water basil when dry [S1].");
+  });
+
+  it("keeps one status region from first paint and fills it when the answer arrives", async () => {
+    useMe();
+    useChat(() => HttpResponse.json(chat()));
+    const user = await openChat();
+    const region = screen.getAllByRole("status").find((s) => s.classList.contains("sr-only"));
+    expect(region).toBeDefined();
+    expect(region).toHaveTextContent("");
+    await ask(user);
+    await screen.findByRole("region", { name: "Answer" });
+    expect(region!.isConnected).toBe(true);
+    expect(region).toHaveTextContent("Answer ready.");
   });
 
   it("a late 401 for a replaced token does not end the new session", async () => {

@@ -65,6 +65,16 @@ describe("app shell", () => {
     expect(screen.getByRole("heading", { name: "Ask" })).toBeInTheDocument();
   });
 
+  it("scrolls to the top on a route change", async () => {
+    const scrollTo = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+    const user = renderShell("/chat");
+    await screen.findByText(/Signed in as Ada/);
+    scrollTo.mockClear();
+    await user.click(within(screen.getByRole("navigation", { name: "Main" })).getByRole("link", { name: "Library" }));
+    expect(scrollTo).toHaveBeenCalledWith(0, 0);
+    scrollTo.mockRestore();
+  });
+
   it("shows the profile error in the shell with an icon", async () => {
     renderShell("/library", () => HttpResponse.json({ detail: "x" }, { status: 500 }));
     const alert = await screen.findByRole("alert");

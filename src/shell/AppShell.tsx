@@ -1,4 +1,5 @@
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useMember } from "../auth/MemberContext";
 import Logo from "../components/brand/Logo";
 import FormError from "../components/FormError";
@@ -13,6 +14,9 @@ const navClass = ({ isActive }: { isActive: boolean }) =>
 
 export default function AppShell() {
   const { error } = useMember();
+  const { pathname } = useLocation();
+  // Effect, not a scroll-restoration reset: browser Back still restores the old position.
+  useEffect(() => window.scrollTo(0, 0), [pathname]);
   return (
     <>
       <header className="sticky top-0 z-40 h-14 border-b bg-background">

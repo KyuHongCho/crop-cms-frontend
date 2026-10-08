@@ -10,6 +10,9 @@ const onUnhandled = ({ request }: { request: Request }) => {
   unhandled.push(`${request.method} ${request.url}`);
 };
 
+// jsdom logs "not implemented" for scrollTo, which the shell calls on every route change.
+window.scrollTo = () => {};
+
 beforeAll(() => {
   server.listen({ onUnhandledRequest: "error" });
   server.events.on("request:unhandled", onUnhandled);

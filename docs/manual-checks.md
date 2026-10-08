@@ -95,6 +95,12 @@ need none of that: they use MSW.
       budget message shows an hourglass in an amber block.
 - [ ] The answer is announced as a polite live region labelled "Answer". This is confirmed in the
       DOM by a test; screen-reader output has not been checked.
+- [ ] With VoiceOver and NVDA, the answer is announced once, not twice (the "Answer ready." status text
+      plus the "Answer" region). Not checked yet.
+- [ ] Click a citation marker with the source card below the top bar at 1280px: the card lands below
+      the bar, not under it.
+- [ ] Navigate Ask to Library from a scrolled page: the new page starts at the top; browser Back
+      restores the earlier scroll position.
 - [ ] After the answer, "Tokens used today" has gone up (it is refetched from `/members/me`).
 - [ ] Off-topic question (for example "Who won the 2018 World Cup?"): a "No answer" state with the
       reason line, not an error.

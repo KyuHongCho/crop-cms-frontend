@@ -22,7 +22,7 @@ const FORBIDDEN = ["ring-ring/", "outline-ring/", "bg-primary/80", "text-white",
 
 // Variant literals each file may pass; every other value, including a computed one, fails.
 const OK_VARIANTS: Record<string, string[]> = {
-  default: ["default", "outline", "ghost", "link"],
+  default: ["default", "outline", "ghost"],
   "src/components/answer/StatusChip.tsx": ["secondary", "notice"],
   "src/components/FormError.tsx": ["destructive"],
 };
@@ -36,6 +36,10 @@ describe("generated ui files", () => {
   it.each([...ui, cssFile].map((f) => [rel(f), f]))("%s has no forbidden translucent or fixed-colour class", (_n, f) => {
     const text = read(f);
     for (const bad of FORBIDDEN) expect(text, bad).not.toContain(bad);
+  });
+
+  it("index.css keeps anchor jumps below the sticky bar", () => {
+    expect(read(cssFile)).toMatch(/html\s*\{\s*scroll-padding-top:\s*4\.5rem;/);
   });
 
   it("button.tsx has no border-border", () => {

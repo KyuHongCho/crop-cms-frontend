@@ -231,7 +231,7 @@ source's provenance line (`BookOpenCheck`, `Forward`). On the Library pages: err
 
 - Pretendard Variable (Latin and Korean), self-hosted from the `pretendard` npm package, with the
   fallback stack `"Pretendard Variable", Pretendard, system-ui, sans-serif`. Licence: SIL OFL 1.1.
-- Sizes: 14px labels, 16px body and inputs, 18px the answer, 20 / 24 / 30px headings.
+- Sizes: 14px labels and source-card headings, 16px body and inputs, 18px the answer, 20 / 24px headings.
 - Line height 1.6 for body, 1.25–1.3 for headings.
 - Answer column maximum 68ch.
 - `word-break: keep-all` on body, so Korean wraps by word; `overflow-wrap: anywhere` on long text.
@@ -240,6 +240,9 @@ source's provenance line (`BookOpenCheck`, `Forward`). On the Library pages: err
 
 - 4px grid: 4 / 8 / 12 / 16 / 24 / 32 / 48.
 - Gutters 16 / 24 / 32px at base / `sm` / `lg`.
+- `html` has `scroll-padding-top: 4.5rem` so anchor and `scrollIntoView` jumps (a source card from its
+  marker) land below the 56px sticky bar, not under it. A route change scrolls to the top; browser Back
+  still restores the old position.
 - 56px top bar (`src/shell/AppShell.tsx`): logo and wordmark linking to `/chat`, the nav "Ask · Library",
   and the member menu at the right. Below `sm` the wordmark is hidden so the bar stays one row. The shell
   owns the page's one `<main>`; pages render inside it and must not add another.
@@ -303,11 +306,11 @@ mark's height on every side. The same mark is `public/favicon.svg`.
 - shadcn (`radix-nova` style, base colour `stone` recorded in `components.json`; no visual effect,
   because every colour token is overridden): Button, Input, Label, Textarea, Card, Badge, Alert,
   DropdownMenu, Separator, Skeleton.
-- Variants the app renders: Button `default | outline | ghost | link`; Badge `secondary` plus a local
+- Variants the app renders: Button `default | outline | ghost`; Badge `secondary` plus a local
   `notice` variant, only inside `StatusChip`, never as a link; Alert `destructive`, only inside
   `FormError`; Card with header, content and footer; DropdownMenu items without
   `variant="destructive"`; Input and Textarea, never `disabled`, never `aria-invalid`.
-- Not rendered: Button `secondary` / `destructive`; Badge `destructive` / `outline` / `ghost` / `link`;
+- Not rendered: Button `secondary` / `destructive` / `link`; Badge `destructive` / `outline` / `ghost` / `link`;
   destructive menu items; `aria-invalid` styling. Using any of these later means measuring it first
   and adding a row to the table.
 - **Alert is for errors only**, because it carries `role="alert"`. Notices and neutral states use
@@ -332,7 +335,9 @@ set on `<html>`; `keep-all`; no layout that assumes English length. react-i18nex
 
 - A visible label on every field.
 - Errors use `role="alert"`, non-errors `role="status"`.
-- The answer sits in a polite, atomic live region.
+- A status region exists from first paint and reads "Answer ready." (or "No answer was given.") when
+  the answer arrives; the answer itself sits in a polite, atomic live region labelled "Answer". Screen-reader
+  output is unverified.
 - An opaque focus ring of at least 3:1.
 - Full keyboard use, including the menu.
 - Label in Name.

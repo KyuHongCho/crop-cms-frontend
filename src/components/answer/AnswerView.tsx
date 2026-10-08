@@ -28,7 +28,7 @@ export default function AnswerView({ data }: { data: Chat }) {
             </StatusChip>
           )}
           {data.dropped.length > 0 && (
-            <StatusChip tone="neutral" icon={ListMinus}>
+            <StatusChip tone="neutral" icon={ListMinus} role="status">
               {`Some topics were left out to fit the size limit: ${dropped}.`}
             </StatusChip>
           )}

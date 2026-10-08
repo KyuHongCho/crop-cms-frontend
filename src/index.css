@@ -101,6 +101,9 @@
     line-height: 1.6;
     word-break: keep-all;
   }
+  html {
+    scroll-padding-top: 4.5rem;
+  }
   p, li, h1, h2, h3 {
     overflow-wrap: anywhere;
   }
