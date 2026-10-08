@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { components } from "../api/schema";
+import { Button } from "@/components/ui/button";
 
 type Doc = components["schemas"]["CitedDocument"];
 
@@ -40,9 +41,9 @@ function Citation({ doc }: { doc: Doc }) {
       <div className="muted">{provenance(doc)}</div>
       {doc.condition && <div>Condition: {doc.condition}</div>}
       {doc.licence_note && <div>Licence: {doc.licence_note}</div>}
-      <button type="button" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+      <Button type="button" variant="outline" size="sm" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
         {open ? "Hide text" : "Show text"}
-      </button>
+      </Button>
       {open && <div className="doc-body">{doc.body}</div>}
     </li>
   );

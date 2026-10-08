@@ -10,6 +10,8 @@
     "noUnusedParameters": true,
     "skipLibCheck": true,
     "noEmit": true,
+    "baseUrl": ".",
+    "paths": { "@/*": ["./src/*"] },
     "isolatedModules": true,
     "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom"]
   },

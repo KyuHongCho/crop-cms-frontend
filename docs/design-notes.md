@@ -31,6 +31,11 @@ file or documented next to the code it concerns.
   so an emoji is one character on both sides; UTF-16 units would count it twice.
   [`src/pages/ChatPage.tsx`](../src/pages/ChatPage.tsx)
 
+- **The theme choice is in `localStorage`.** Unlike the token, it is not a secret and should survive
+  a restart. [More below](#design-system)
+- **Colours are hex, not OKLCH.** The build keeps hex, so the contrast ratios computed from the CSS
+  are the shipped ones. [More below](#design-system)
+
 ## Token storage and sessions
 
 The JWT lives in `sessionStorage` under one key, read and written only through
@@ -65,6 +70,29 @@ late 401 for a token the user already replaced (log out, log in again while a re
 would end the new session. A test reproduces it and fails with the old condition.
 A bad login's 401 carries no token, so it never reads as an expired session.
 [`src/api/client.ts`](../src/api/client.ts)
+
+## Design system
+
+[`DESIGN.md`](../DESIGN.md) is the design guideline. It sits at the repo root beside the README, and
+not under `docs/`, so it is not confused with this file, which holds engineering rationale.
+
+- **Colour tokens are hex or a `var()` alias of a decided hex.** There is no OKLCH: shadcn's generated
+  OKLCH values are replaced, so the ratios the test computes are the ratios of the shipped CSS. Dark
+  mode is the `.dark` class on `<html>`.
+- **Two tests keep it true.** [`tokens.test.ts`](../src/design/tokens.test.ts) parses
+  `src/index.css`, computes every row of the contrast table, and compares it with `DESIGN.md`.
+  [`ui-classes.test.ts`](../src/design/ui-classes.test.ts) fails if a generated component brings back one of the classes D11 removed, or the app renders a
+  variant the table leaves out.
+  `DESIGN.md` lists what that guard cannot see.
+- **D11: a few generated lines are edited by hand,** for contrast only: `ring-ring/50` to `ring-ring`,
+  `hover:bg-primary/80` to `/90`, and `border-border` to `border-input` on the outline Button. A later
+  `npx shadcn add` can bring them back; the guard test then fails.
+- **Theme.** `light | dark | system`, stored in `localStorage` under `crop-cms-theme`, and set before
+  paint by an inline script in `index.html`. The script and
+  [`ThemeProvider`](../src/theme/ThemeProvider.tsx) repeat a few lines, because the script must run
+  before the bundle loads.
+- **Only the login and signup pages are fully restyled so far.** The Ask page has shadcn buttons and a
+  textarea inside the old layout; its legacy classes live in a temporary block in `src/index.css`.
 
 ## Dev proxy and CORS
 
@@ -168,10 +196,18 @@ src/
   api/         client.ts (openapi-fetch + auth middleware), errors.ts, format.ts, schema.d.ts (generated),
                errors.test.ts, format.test.ts
   auth/        AuthContext.tsx (login, logout, route guard), token.ts (sessionStorage), token.test.ts
-  pages/       LoginPage.tsx, SignupPage.tsx, ChatPage.tsx, ChatPage.test.tsx, SignupPage.test.tsx
-  components/  AnswerView.tsx, Citations.tsx
-  test/        server.ts (MSW), setup.ts (unhandled-request guard)
-  App.tsx, App.test.tsx (includes the login tests), main.tsx, index.css
+  pages/       LoginPage.tsx, SignupPage.tsx, ChatPage.tsx, ChatPage.test.tsx, SignupPage.test.tsx,
+               LoginPage.test.tsx
+  components/  AnswerView.tsx, Citations.tsx, FormError.tsx, brand/Logo.tsx,
+               ui/ (generated shadcn components; only the D11 edits are made by hand)
+  lib/         utils.ts (re-exports cn)
+  theme/       ThemeProvider.tsx, ThemeProvider.test.tsx
+  design/      contrast.ts, tokens.test.ts, ui-classes.test.ts (keep DESIGN.md true)
+  test/        server.ts (MSW), setup.ts (unhandled-request guard, storage and theme reset)
+  App.tsx, App.test.tsx, main.tsx, index.css
+DESIGN.md      design guideline (colour, type, layout, components, accessibility)
+components.json  shadcn configuration
+public/        favicon.svg
 scripts/       check-api.mjs
 .githooks/     pre-commit
 .github/workflows/  ci.yml, agentic-review.yml

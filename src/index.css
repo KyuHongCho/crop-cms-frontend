@@ -1,11 +1,129 @@
-body { font-family: system-ui, sans-serif; margin: 0; }
-main { max-width: 32rem; margin: 3rem auto; padding: 0 1rem; }
-label { display: block; margin-bottom: 1rem; }
-input { display: block; width: 100%; padding: 0.4rem; box-sizing: border-box; }
-[role="alert"] { color: #b00020; }
-textarea { display: block; width: 100%; padding: 0.4rem; box-sizing: border-box; font: inherit; }
-.over { color: #b00020; }
-.answer, .doc-body { white-space: pre-wrap; overflow-wrap: anywhere; }
-.notice { background: #fff4d6; padding: 0.5rem 0.75rem; border-radius: 4px; }
-.muted { color: #555; font-size: 0.9em; }
-.tag { font-size: 0.85em; color: #555; }
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: #f4f7f2;
+  --card: #ffffff;
+  --foreground: #1b2721;
+  --muted-foreground: #56635b;
+  --muted: #e8eee6;
+  --primary: #2f6b4f;
+  --primary-foreground: #ffffff;
+  --cite: #8a5a12;
+  --notice-foreground: #7a4b0c;
+  --notice: #fbf1d9;
+  --destructive: #b4362c;
+  --border: #d8e0d6;
+  --input: #7f8a82;
+  --card-foreground: var(--foreground);
+  --popover: var(--card);
+  --popover-foreground: var(--foreground);
+  --secondary: var(--muted);
+  --secondary-foreground: var(--foreground);
+  --accent: var(--muted);
+  --accent-foreground: var(--foreground);
+  --ring: var(--primary);
+  --radius: 0.625rem;
+}
+
+.dark {
+  --background: #0f1612;
+  --card: #16201a;
+  --foreground: #e2eae4;
+  --muted-foreground: #9fada4;
+  --muted: #1e2a23;
+  --primary: #7bc59a;
+  --primary-foreground: #0f1f16;
+  --cite: #e0b060;
+  --notice-foreground: #f2d9a0;
+  --notice: #3a2e14;
+  --destructive: #f08a7e;
+  --border: #26332b;
+  --input: #66746b;
+  --card-foreground: var(--foreground);
+  --popover: var(--card);
+  --popover-foreground: var(--foreground);
+  --secondary: var(--muted);
+  --secondary-foreground: var(--foreground);
+  --accent: var(--muted);
+  --accent-foreground: var(--foreground);
+  --ring: var(--primary);
+}
+
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: "Pretendard Variable", Pretendard, system-ui, sans-serif;
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --color-cite: var(--cite);
+  --color-notice: var(--notice);
+  --color-notice-foreground: var(--notice-foreground);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-foreground;
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.6;
+    word-break: keep-all;
+  }
+  p, li, h1, h2, h3 {
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Legacy ChatPage hooks in token colours; temporary until the Ask page is rebuilt. */
+@layer components {
+  .answer, .doc-body { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .over, p[role="alert"] { color: var(--destructive); }
+  .notice {
+    background: var(--notice);
+    color: var(--notice-foreground);
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.25rem;
+  }
+  .muted, .tag { color: var(--muted-foreground); font-size: 0.875rem; }
+}

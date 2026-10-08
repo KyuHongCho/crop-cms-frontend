@@ -3,7 +3,14 @@ import { Link, Navigate } from "react-router-dom";
 import type { ApiError } from "../api/errors";
 import { isApiError } from "../api/errors";
 import { formatReset } from "../api/format";
+import { Info } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
+import Logo from "@/components/brand/Logo";
+import FormError from "@/components/FormError";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 function loginMessage(e: unknown): string {
   if (!isApiError(e)) return "Could not reach the server. Try again.";
@@ -48,24 +55,40 @@ export default function LoginPage() {
   }
 
   return (
-    <main>
-      <h1>Log in</h1>
-      {sessionExpired && <p role="status">Your session expired. Please log in again.</p>}
-      <form onSubmit={onSubmit}>
-        <label>
-          Email
-          <input type="text" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        </label>
-        <label>
-          Password
-          <input type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-        </label>
-        {error && <p role="alert">{error}</p>}
-        <button type="submit" disabled={busy}>Log in</button>
-      </form>
-      <p>
-        Have an invite? <Link to="/signup">Sign up</Link>
-      </p>
+    <main className="flex min-h-svh flex-col items-center justify-center gap-6 px-4 py-8">
+      <Logo className="text-xl text-primary" />
+      <Card className="w-full max-w-sm">
+        <CardHeader>
+          <CardTitle>
+            <h1 className="text-2xl leading-tight font-semibold">Log in</h1>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          {sessionExpired && (
+            <p role="status" className="flex items-start gap-2 rounded-lg bg-notice px-3 py-2 text-sm text-notice-foreground">
+              <Info aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+              Your session expired. Please log in again.
+            </p>
+          )}
+          <form onSubmit={onSubmit} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="login-email">Email</Label>
+              <Input id="login-email" type="text" autoComplete="username" className="text-base!" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="login-password">Password</Label>
+              <Input id="login-password" type="password" autoComplete="current-password" className="text-base!" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            </div>
+            {error && <FormError>{error}</FormError>}
+            <Button type="submit" size="lg" disabled={busy}>Log in</Button>
+          </form>
+        </CardContent>
+        <CardFooter className="text-sm">
+          <p>
+            Have an invite? <Link to="/signup" className="text-primary underline underline-offset-4">Sign up</Link>
+          </p>
+        </CardFooter>
+      </Card>
     </main>
   );
 }

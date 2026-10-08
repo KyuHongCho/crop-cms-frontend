@@ -21,6 +21,8 @@ afterEach(() => {
   server.resetHandlers();
   cleanup();
   sessionStorage.clear();
+  localStorage.clear();
+  document.documentElement.classList.remove("dark");
   const seen = unhandled;
   unhandled = [];
   if (seen.length > 0) throw new Error(`Unhandled network request(s):\n${seen.join("\n")}`);

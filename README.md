@@ -5,6 +5,9 @@
 A React + TypeScript single-page app for the crop CMS backend: log in, sign up with an invite code,
 ask crop questions and get cited answers.
 
+Stack: React 19, TypeScript, Vite, Tailwind CSS 4 with shadcn/ui components (Radix), Pretendard
+(self-hosted) and lucide icons. The design rules are in [`DESIGN.md`](DESIGN.md).
+
 ## Why it exists
 
 [crop-cms-backend](https://github.com/KyuHongCho/crop-cms-backend) returns a topic's documents
@@ -56,6 +59,10 @@ The structured half of the planned chat, crop suitability from climate data, liv
 - **The question counter counts code points like the server, not UTF-16 units.** An emoji counts
   once, as it does on the server.
   [`src/pages/ChatPage.tsx`](src/pages/ChatPage.tsx) · [why](docs/design-notes.md#trade-offs-and-known-limits)
+- **Design:** one calm sage palette in light and dark, with every colour pair measured. A test fails
+  when `DESIGN.md`'s contrast table disagrees with the CSS, a pair falls below its floor, or a
+  generated component brings back a low-contrast class.
+  [`DESIGN.md`](DESIGN.md) · [`src/design/tokens.test.ts`](src/design/tokens.test.ts) · [`src/design/ui-classes.test.ts`](src/design/ui-classes.test.ts) · [why](docs/design-notes.md#design-system)
 - **Tests fail on any unhandled network request.** A call with no mock fails the test that made it,
   even when the app swallows the error.
   [`src/test/setup.ts`](src/test/setup.ts) · [why](docs/design-notes.md#testing-details)
@@ -153,6 +160,14 @@ other statuses (400/401/413/429/503).
 - `jsdom` is pinned `^26.1.0` (engines `node >=18`): `jsdom@27.1.0` needs Node
   `^20.19.0 || ^22.12.0 || >=24.0.0`, and this project was built on Node 22.11.0, which is below 22.12.
   Moving to Node 22.12+ lifts that constraint.
+- `@tailwindcss/oxide` (Tailwind 4) needs Node `>= 20` and `shadcn@4.21.4` needs Node `>=20.18.1`
+  (npm metadata). Both were run on 22.11.0: `npm i -D tailwindcss @tailwindcss/vite`,
+  `npx shadcn@4.21.4 init -t vite -b radix -p nova -y` and `npx shadcn@4.21.4 add input label textarea
+  card badge alert dropdown-menu separator skeleton -y`, then the full test, typecheck, lint and build
+  run. npm treats `engines` as advisory, so it would not have stopped a lower Node.
+- `shadcn` is a runtime dependency here, not a dev tool: `src/index.css` imports `shadcn/tailwind.css`.
+  The generated components import `cn` from the `cn` package, not clsx and tailwind-merge, so two
+  conflicting Tailwind classes on one element are not merged; the later one in the stylesheet wins.
 - There is no `engines` field in `package.json`: the Node floor above is what was tested, not
   something every dependency enforces.
 
@@ -191,5 +206,8 @@ The labels `Review ongoing`, `Audit ongoing` and `Review finished` show its prog
 
 Source code: MIT — see [LICENSE](LICENSE). Crop data is not covered: it comes from the backend, and
 each document carries its own licence note, which the app shows under the citation.
+
+The Pretendard font, self-hosted from the `pretendard` npm package, is under the SIL Open Font
+License 1.1.
 
 Personal portfolio repository — issues are welcome; external pull requests are not accepted.

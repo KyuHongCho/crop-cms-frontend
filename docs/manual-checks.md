@@ -7,6 +7,18 @@ answers, the browser's own behaviour, and the Network tab.
 The backend must be set up first, by [its Quickstart](https://github.com/KyuHongCho/crop-cms-backend#quickstart):
 schema migrated for login and signup, and the demo corpus seeded and embedded for chat.
 
+## Look and feel
+
+- [ ] `/login` and `/signup` at 375px and 1280px wide, in light and dark: a centred card on the sage
+      background, nothing clipped.
+- [ ] The keyboard focus ring is visible on every field and button, in both themes.
+- [ ] Set the OS to dark, then reload: no flash of the light page before the dark one.
+- [ ] Korean text (a display name or an error) wraps between words, not mid-word.
+- [ ] A login error shows an icon and the text, not colour alone.
+- [ ] Ask page: a multi-line answer keeps its line breaks; the counter turns red past
+      2000 characters; Ask, Retry and Show text look like buttons.
+- [ ] The theme follows the OS setting. (The switch itself arrives with the app shell.)
+
 ## Login
 
 - [ ] You have an account (mint an invite and sign up, as in the Quickstart).

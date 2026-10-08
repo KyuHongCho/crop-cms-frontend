@@ -5,6 +5,8 @@ import { formatReset } from "../api/format";
 import type { components } from "../api/schema";
 import { useAuth } from "../auth/AuthContext";
 import AnswerView from "../components/AnswerView";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 
 type Member = components["schemas"]["MemberResponse"];
 type Chat = components["schemas"]["ChatResponse"];
@@ -101,8 +103,8 @@ export default function ChatPage() {
   }
 
   return (
-    <main>
-      <h1>Chat</h1>
+    <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+      <h1 className="mb-4 text-2xl leading-tight font-semibold">Chat</h1>
       {member && (
         <p>
           Signed in as {member.display_name || member.email}. Tokens used today:{" "}
@@ -111,9 +113,10 @@ export default function ChatPage() {
       )}
       {error && <p role="alert">{error}</p>}
       <form onSubmit={onSubmit}>
-        <label>
+        <label className="mb-1.5 block text-sm font-medium">
           Question
-          <textarea
+          <Textarea
+            className="mt-1.5 text-base!"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             rows={4}
@@ -123,9 +126,9 @@ export default function ChatPage() {
         <p id="question-count" className={tooLong ? "over" : undefined}>
           {count} / {MAX_QUESTION} characters (leading and trailing spaces not counted)
         </p>
-        <button type="submit" disabled={!canSubmit}>
+        <Button type="submit" disabled={!canSubmit}>
           Ask
-        </button>
+        </Button>
       </form>
       {loading && <p role="status">Waiting for the answer...</p>}
       {result && "answer" in result && <AnswerView data={result.answer} />}
@@ -134,13 +137,13 @@ export default function ChatPage() {
         <div role="alert">
           <p>{errorMessage(result.error)}</p>
           {result.error.kind === "unavailable" && (
-            <button type="button" disabled={loading} onClick={() => void ask(lastAsked)}>
+            <Button type="button" variant="outline" disabled={loading} onClick={() => void ask(lastAsked)}>
               Retry
-            </button>
+            </Button>
           )}
         </div>
       )}
-      <button onClick={logout}>Log out</button>
+      <Button variant="outline" className="mt-6" onClick={logout}>Log out</Button>
     </main>
   );
 }
