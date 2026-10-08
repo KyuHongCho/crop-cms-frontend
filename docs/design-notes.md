@@ -131,9 +131,12 @@ not under `docs/`, so it is not confused with this file, which holds engineering
   `document_count` come from `GET /retrieval/{crop}/{topic}`, the same published set chat answers
   from. The count beside a topic on the crop page is the number of published items in `/items`; the
   topic page shows the server's count. Topic links use `encodeURIComponent`.
-- **Backend observation, no change made:** `GET /items` returns unpublished drafts to anyone without
-  auth (a draft item was visible on the live backend), and sends every body just to list topics.
-  Acceptable at about 60 items; the Library filters drafts out, but the API still exposes them.
+- **Backend observation, no change made:** when the Library was built, `GET /items` returned
+  unpublished drafts to anyone without a token. Backend main now returns published items only by
+  default (drafts need `status=all` with an editor or admin token), and caps an unparameterised call
+  at 500 items, where the Library, which does not page, would silently stop. It also sends every body
+  just to list topics. Acceptable at about 60 items; the Library keeps its own published filter as a
+  guard.
 - **Library errors.** A 404 crop shows "No crop named ..." with an alert icon and a link back; a 413
   shows the server's own message; loading shows skeletons with a status line. A topic that exists
   nowhere returns 200 with zero documents, shown as an empty note. On the topic page a 404 reads

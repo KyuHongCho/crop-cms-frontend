@@ -15,9 +15,8 @@ Stack: React 19, TypeScript, Vite, Tailwind CSS 4 with shadcn/ui components (Rad
 and it makes those guarantees visible to a user:
 
 - **Citations**, listed in the Sources panel beside the answer, show the source, reference and link,
-  whether the document was read first-hand or
-  through another source, the crop label, the condition and licence note when there are any, and the
-  full text on request.
+  whether the document was read first-hand or through another source, the crop label, the condition
+  and licence note when there are any, and the full text on request.
 - **"No answer" is a state, not an error.** A declined question and a question with no relevant
   topic both show it, with the reason.
 - **A "cut off" chip** appears when the response's `truncated` flag is set, and only then.
@@ -43,7 +42,8 @@ The structured half of the planned chat, crop suitability from climate data, liv
 | API types generated from the backend's OpenAPI, committed, with a drift check in CI | Browser end-to-end tests |
 | CI (a required `checks` job) and an advisory AI review on pull requests | |
 | A pre-commit hook (typecheck, then lint) | |
-| A read-only Library at `/library`: crops, each crop's published topics with counts, and a topic's complete document set as source cards (login required in the UI; the API reads are public) | |
+| A read-only Library at `/library`: crops, each crop's published topics with counts, and a topic's complete document set as source cards (login required in the UI; the API reads are public) | English / Korean interface (Korean text already renders in Pretendard; strings are kept as whole sentences for a later react-i18next pass) |
+| An app shell and theme: a top bar with Ask / Library navigation and an account menu with a Light / Dark / System theme choice (follows the OS by default, remembered per browser), and per-page browser titles | |
 
 ## Engineering highlights
 
@@ -84,7 +84,8 @@ Requires Node 22.11 or newer (built and tested on 22.11.0; see [Dependency pins 
 ```bash
 # 1. (backend checkout) Set up the backend by its Quickstart
 #    (https://github.com/KyuHongCho/crop-cms-backend#quickstart). Its steps 1-3 are enough for
-#    login and signup:
+#    login and signup. The Library and chat also need the seeded demo corpus (below); without it
+#    the Library shows no crops.
 #      .env with the passwords and SECRET_KEY, then
 docker compose up -d --build
 docker compose exec cms alembic upgrade head

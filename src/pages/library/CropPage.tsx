@@ -11,7 +11,7 @@ export default function CropPage() {
     const [crops, items] = await Promise.all([fetchCrops(), fetchItems()]);
     const crop = crops.find((c) => c.slug === cropSlug);
     if (!crop) throw normaliseError(404, null);
-    // GET /items also returns drafts; only published documents are listed.
+    // The API lists published items by default; this filter is a guard in case that ever changes.
     const counts = new Map<string, number>();
     for (const i of items) {
       if (i.crop_id === crop.id && i.published === true && i.topic != null) counts.set(i.topic, (counts.get(i.topic) ?? 0) + 1);
