@@ -40,7 +40,8 @@ schema migrated for login and signup, and the demo corpus seeded and embedded fo
 
 A real demo needs the backend's demo corpus seeded and embedded (steps 4 and 5 of its Quickstart;
 an unseeded backend answers "no relevant topics"), `ANTHROPIC_API_KEY` and `OPENAI_API_KEY` in the
-backend `.env` (then restart the backend), and **spends real provider tokens**. The automated tests need neither: they use MSW.
+backend `.env` (then restart the backend), and **spends real provider tokens**. The automated tests
+need none of that: they use MSW.
 
 - [ ] Log in. In-scope crop question (for example "How often should I water basil?"): a cited
       answer appears, with citations showing title, source, reference and a link (only for

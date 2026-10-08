@@ -16,7 +16,8 @@ file or documented next to the code it concerns.
 - **The late-401 tests wait a fixed 50 ms.** The margin is about 10x on one development machine and
   unmeasured on a GitHub runner. [More below](#testing-details)
 - **The live-region behaviour is confirmed in the DOM only.** The answer is a polite, atomic live
-  region and a test asserts the attributes; screen-reader output is unverified.
+  region; a test asserts `aria-live` and the label, while `aria-atomic` and screen-reader output are
+  unverified.
   [`src/pages/ChatPage.test.tsx`](../src/pages/ChatPage.test.tsx)
 - **Field limits are mirrored by hand.** `openapi-typescript` does not emit limits such as
   `max_length`, so the forms repeat the server's numbers; the server stays the authority and its
@@ -164,12 +165,13 @@ requires those outputs to be `success`.
 
 ```
 src/
-  api/         client.ts (openapi-fetch + auth middleware), errors.ts, format.ts, schema.d.ts (generated)
-  auth/        AuthContext.tsx (login, logout, route guard), token.ts (sessionStorage)
-  pages/       LoginPage.tsx, SignupPage.tsx, ChatPage.tsx, and their tests
+  api/         client.ts (openapi-fetch + auth middleware), errors.ts, format.ts, schema.d.ts (generated),
+               errors.test.ts, format.test.ts
+  auth/        AuthContext.tsx (login, logout, route guard), token.ts (sessionStorage), token.test.ts
+  pages/       LoginPage.tsx, SignupPage.tsx, ChatPage.tsx, ChatPage.test.tsx, SignupPage.test.tsx
   components/  AnswerView.tsx, Citations.tsx
   test/        server.ts (MSW), setup.ts (unhandled-request guard)
-  App.tsx, main.tsx, index.css
+  App.tsx, App.test.tsx (includes the login tests), main.tsx, index.css
 scripts/       check-api.mjs
 .githooks/     pre-commit
 .github/workflows/  ci.yml, agentic-review.yml

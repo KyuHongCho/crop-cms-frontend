@@ -37,9 +37,6 @@ The structured half of the planned chat, crop suitability from climate data, liv
 | CI (a required `checks` job) and an advisory AI review on pull requests | |
 | A pre-commit hook (typecheck, then lint) | |
 
-Remaining work: admin screens, document editing, deployment, conversation history, browser
-end-to-end tests.
-
 ## Engineering highlights
 
 - **Types come from the backend, and CI notices drift.** `src/api/schema.d.ts` is generated from the
@@ -80,7 +77,7 @@ Requires Node 22.11 or newer (built and tested on 22.11.0; see [Dependency pins 
 docker compose up -d --build
 docker compose exec cms alembic upgrade head
 #    Chat answers also need the demo corpus (its step 4) and embeddings (its step 5, which needs
-#    OPENAI_API_KEY; ANTHROPIC_API_KEY is needed too). Without the corpus chat answers
+#    OPENAI_API_KEY), plus ANTHROPIC_API_KEY to answer. Without the corpus chat answers
 #    "no relevant topics".
 docker compose exec cms python -m scripts.seed
 docker compose exec cms python -m scripts.reindex
@@ -100,7 +97,6 @@ curl -X POST localhost:8000/members/signup -H 'content-type: application/json' \
 
 # 5. (frontend checkout) Start the dev server last: it keeps running. Open
 #    http://localhost:5173/signup and paste the code (or /login if you signed up with curl).
-#    Choose your own password (8-128 characters); do not reuse a real one.
 #    The browser calls /api/*; the Vite dev proxy strips /api and forwards it to VITE_API_TARGET
 #    (default http://127.0.0.1:8000). The proxy is dev-only.
 #    Only if the backend is elsewhere: cp .env.example .env and edit VITE_API_TARGET. Vite reads
@@ -108,8 +104,7 @@ curl -X POST localhost:8000/members/signup -H 'content-type: application/json' \
 npm run dev
 ```
 
-Then log in with the email and password you chose. The by-hand checks are in
-[`docs/manual-checks.md`](docs/manual-checks.md).
+Then log in with the email and password you chose.
 
 ## Testing
 
