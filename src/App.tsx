@@ -7,6 +7,7 @@ import LibraryPage from "./pages/library/LibraryPage";
 import TopicPage from "./pages/library/TopicPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
+import { AskProvider } from "./shell/AskProvider";
 import AppShell from "./shell/AppShell";
 import { ThemeProvider } from "./theme/ThemeProvider";
 
@@ -20,7 +21,9 @@ export function AppRoutes() {
           element={
             <RequireAuth>
               <MemberProvider>
-                <AppShell />
+                <AskProvider>
+                  <AppShell />
+                </AskProvider>
               </MemberProvider>
             </RequireAuth>
           }
