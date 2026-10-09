@@ -38,11 +38,12 @@ describe("generated ui files", () => {
     for (const bad of FORBIDDEN) expect(text, bad).not.toContain(bad);
   });
 
-  // A scroll-padding-top on html scrolls the page when a sticky-bar link takes keyboard focus; the clearance
-  // belongs on the jump target (SourceCard, scroll-mt-18), which only scrollIntoView ever aims at.
-  it("index.css has no scroll-padding-top, and a source card keeps its clearance below the sticky bar", () => {
-    expect(read(cssFile)).not.toContain("scroll-padding");
-    expect(read(resolve(root, "components/sources/SourceCard.tsx"))).toContain("scroll-mt-18");
+  // html scroll-padding-top keeps keyboard focus clear of the sticky bar; the bar's own controls opt out, or focusing
+  // one would scroll the page.
+  it("index.css pads scrolling below the sticky bar and exempts the bar's own controls", () => {
+    const css = read(cssFile);
+    expect(css).toContain("scroll-padding-top: 4.5rem");
+    expect(css).toContain("scroll-margin-top: -4.5rem");
   });
 
   it("button.tsx has no border-border", () => {

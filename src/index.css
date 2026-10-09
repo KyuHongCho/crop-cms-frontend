@@ -93,6 +93,11 @@
   }
   html {
     @apply font-sans;
+    scroll-padding-top: 4.5rem;
+  }
+  /* The bar sits inside the padded band, so a focused bar control would otherwise scroll the page. */
+  header :is(a, button, [tabindex]) {
+    scroll-margin-top: -4.5rem;
   }
   body {
     @apply bg-background text-foreground;

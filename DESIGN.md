@@ -240,10 +240,12 @@ source's provenance line (`BookOpenCheck`, `Forward`). On the Library pages: err
 
 - 4px grid: 4 / 8 / 12 / 16 / 24 / 32 / 48.
 - Gutters 16 / 24 / 32px at base / `sm` / `lg`.
-- A source card has `scroll-mt-18` (4.5rem) so the jump from its citation marker (`scrollIntoView`) lands
-  below the 56px sticky bar, not under it. There is deliberately no `scroll-padding-top` on `html`: it made
-  the page scroll whenever a bar link took keyboard focus. Scroll is owned by the app
-  (`src/shell/ScrollMemory.tsx`), which sets `history.scrollRestoration = "manual"`: a new page opens at
+- `html` has `scroll-padding-top: 4.5rem`, so a control that takes keyboard focus under the 56px sticky bar
+  (a link, a button, the Ask text box) is scrolled clear of it, and a citation jump
+  (`scrollIntoView`) lands below the bar. The bar's own controls opt out with `scroll-margin-top: -4.5rem`,
+  or focusing one would scroll the page. Scroll is owned by the app: `src/shell/ScrollMemory.tsx` restores
+  it, and `src/main.tsx` turns the browser's own restoration off before React renders
+  (`takeOverScroll` in `src/shell/scrollPositions.ts`). A new page opens at
   the top; Back, Forward and reload put each history entry back at the position saved while it was
   scrolled (`sessionStorage`, at most 50 entries, dropped on logout or a token change), and a tab return
   does the same for the section's last page. A page reports that its data is shown (`usePageReady`)

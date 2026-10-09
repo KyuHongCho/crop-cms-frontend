@@ -7,12 +7,17 @@ const scrollY = (page: Page) => page.evaluate(() => Math.round(window.scrollY));
 const expectScrollY = (page: Page, y: number) => expect.poll(() => scrollY(page), { timeout: 5000 }).toBe(y);
 
 async function tab(page: Page, name: "Ask" | "Library") {
-  await nav(page).getByRole("link", { name }).click();
+  // locator.click() first calls scrollIntoViewIfNeeded, which scrolls the page for a link in the padded band
+  // under the sticky bar; a pointer press at the link's position does not.
+  const box = (await nav(page).getByRole("link", { name }).boundingBox())!;
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
 }
 
 async function scrollTo(page: Page, y: number) {
   await page.evaluate((to) => window.scrollTo(0, to), y);
   await expectScrollY(page, y);
+  // The scroll event the app saves from is delivered when the browser next renders a frame.
+  await page.evaluate(() => new Promise<void>((r) => requestAnimationFrame(() => r())));
 }
 
 test.describe("with a tall topic", () => {
