@@ -44,6 +44,47 @@ jobs:
       - name: Production build
         run: npm run build
 
+  # Advisory: not in branch protection. Linux and --with-deps are unproven until the first run.
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      # Browsers are cached but the system libraries are not, so the deps step runs on a cache hit.
+      - name: Install browsers and their system libraries
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: Install system libraries only
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium webkit
+
+      - name: End-to-end tests
+        run: npm run e2e
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
   # Fails when the backend's main serves an API the committed src/api/schema.d.ts does not match.
   # Not a required check: it also goes red when the backend changes a route this app never calls.
   schema-drift:

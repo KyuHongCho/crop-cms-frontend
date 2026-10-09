@@ -38,8 +38,12 @@ describe("generated ui files", () => {
     for (const bad of FORBIDDEN) expect(text, bad).not.toContain(bad);
   });
 
-  it("index.css keeps anchor jumps below the sticky bar", () => {
-    expect(read(cssFile)).toMatch(/html\s*\{\s*scroll-padding-top:\s*4\.5rem;/);
+  // html scroll-padding-top keeps keyboard focus clear of the sticky bar; the bar's own controls opt out, or focusing
+  // one would scroll the page.
+  it("index.css pads scrolling below the sticky bar and exempts the bar's own controls", () => {
+    const css = read(cssFile);
+    expect(css).toContain("scroll-padding-top: 4.5rem");
+    expect(css).toContain("scroll-margin-top: -4.5rem");
   });
 
   it("button.tsx has no border-border", () => {

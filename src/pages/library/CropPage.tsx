@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { Link, useParams } from "react-router-dom";
 import { normaliseError } from "../../api/errors";
 import { fetchCrops, fetchItems, useLoad } from "./libraryApi";
+import { usePageReady } from "../../shell/ScrollMemory";
 import { useDocumentTitle } from "../../lib/useDocumentTitle";
 import { BackLink, documentCount, EmptyNote, LibraryError, LibraryLayout, LoadingBlock, PageHeading } from "./parts";
 
@@ -22,6 +23,7 @@ export default function CropPage() {
   const missing = `No crop named "${cropSlug}".`;
   const name = state.status === "ok" ? state.data.crop.common_name : cropSlug;
   useDocumentTitle(name, "Library");
+  usePageReady(state.status !== "loading");
 
   return (
     <LibraryLayout>

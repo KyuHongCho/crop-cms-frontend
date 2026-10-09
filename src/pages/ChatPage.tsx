@@ -1,9 +1,9 @@
-import { useRef, useState, type FormEvent } from "react";
-import { client } from "../api/client";
-import { isApiError, normaliseError, type ApiError } from "../api/errors";
+import type { FormEvent } from "react";
+import type { ApiError } from "../api/errors";
 import { formatReset } from "../api/format";
-import type { components } from "../api/schema";
 import { useMember } from "../auth/MemberContext";
+import { MAX_QUESTION, useAsk } from "../shell/AskProvider";
+import { usePageReady } from "../shell/ScrollMemory";
 import { CircleAlert, Hourglass, WifiOff } from "lucide-react";
 import AnswerView from "../components/answer/AnswerView";
 import FormError from "../components/FormError";
@@ -13,11 +13,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useDocumentTitle } from "@/lib/useDocumentTitle";
 import { cn } from "@/lib/utils";
-
-type Chat = components["schemas"]["ChatResponse"];
-type Result = { answer: Chat } | { error: ApiError } | { offline: true } | null;
-
-const MAX_QUESTION = 2000;
 
 function budgetMessage(retryAfter?: number): string {
   return retryAfter
@@ -38,44 +33,15 @@ function errorMessage(err: ApiError): string {
 
 export default function ChatPage() {
   useDocumentTitle("Ask");
-  const { member, refresh: refreshMember } = useMember();
-  const [question, setQuestion] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<Result>(null);
-  const [lastAsked, setLastAsked] = useState("");
-  const inFlight = useRef(false);
+  const { member } = useMember();
+  const { question, setQuestion, loading, result, lastAsked, ask } = useAsk();
+  usePageReady(!loading);
 
   const trimmed = question.trim();
   // The server counts code points (pydantic), not UTF-16 units; emoji would otherwise count twice.
   const count = [...trimmed].length;
   const tooLong = count > MAX_QUESTION;
   const canSubmit = count > 0 && !tooLong && !loading;
-
-  async function ask(text: string) {
-    if (inFlight.current) return;
-    const q = text.trim();
-    const n = [...q].length;
-    if (n === 0 || n > MAX_QUESTION) return;
-    inFlight.current = true;
-    setLoading(true);
-    setResult(null);
-    setLastAsked(q);
-    try {
-      const { data, error: body, response } = await client.POST("/chat", { body: { question: q } });
-      if (data) {
-        setResult({ answer: data });
-        void refreshMember();
-      } else {
-        const err = normaliseError(response.status, body, response.headers);
-        setResult({ error: err });
-      }
-    } catch (e) {
-      setResult(isApiError(e) ? { error: e } : { offline: true });
-    } finally {
-      inFlight.current = false;
-      setLoading(false);
-    }
-  }
 
   function onSubmit(ev: FormEvent) {
     ev.preventDefault();
