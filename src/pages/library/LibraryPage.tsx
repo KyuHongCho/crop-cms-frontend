@@ -1,11 +1,13 @@
 import { Link } from "react-router-dom";
 import { fetchCrops, useLoad } from "./libraryApi";
+import { usePageReady } from "../../shell/ScrollMemory";
 import { useDocumentTitle } from "../../lib/useDocumentTitle";
 import { EmptyNote, LibraryError, LibraryLayout, LoadingBlock, PageHeading } from "./parts";
 
 export default function LibraryPage() {
   const state = useLoad(fetchCrops);
   useDocumentTitle("Library");
+  usePageReady(state.status !== "loading");
   return (
     <LibraryLayout>
       <PageHeading className="mb-4">Library</PageHeading>

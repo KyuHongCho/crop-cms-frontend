@@ -52,6 +52,24 @@ export const chatAnswer: Schemas["ChatResponse"] = {
   truncated: false,
 };
 
+// Tall enough to scroll in a 720px viewport, whatever the browser.
+export const tallTopicSet: Schemas["TopicSetResponse"] = {
+  ...topicSet,
+  document_count: 30,
+  documents: Array.from({ length: 30 }, (_, i) => ({
+    ...document,
+    id: i + 1,
+    title: `Temperature note ${i + 1}`,
+    body: `Note ${i + 1}. ${"Basil grows best between 20 and 30 degrees Celsius. ".repeat(6)}`,
+    reference: `FAO-${i + 1}`,
+  })),
+};
+
+export const longChatAnswer: Schemas["ChatResponse"] = {
+  ...chatAnswer,
+  answer: Array.from({ length: 40 }, (_, i) => `Paragraph ${i + 1}. Basil grows best between 20 and 30 degrees Celsius [S1].`).join("\n\n"),
+};
+
 type Mock = { status?: number; body: unknown };
 export type Mocks = Record<string, Mock | (() => Mock)>;
 

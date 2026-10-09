@@ -3,6 +3,7 @@ import type { ApiError } from "../api/errors";
 import { formatReset } from "../api/format";
 import { useMember } from "../auth/MemberContext";
 import { MAX_QUESTION, useAsk } from "../shell/AskProvider";
+import { usePageReady } from "../shell/ScrollMemory";
 import { CircleAlert, Hourglass, WifiOff } from "lucide-react";
 import AnswerView from "../components/answer/AnswerView";
 import FormError from "../components/FormError";
@@ -34,6 +35,7 @@ export default function ChatPage() {
   useDocumentTitle("Ask");
   const { member } = useMember();
   const { question, setQuestion, loading, result, lastAsked, ask } = useAsk();
+  usePageReady(!loading);
 
   const trimmed = question.trim();
   // The server counts code points (pydantic), not UTF-16 units; emoji would otherwise count twice.

@@ -9,6 +9,7 @@ import { AuthProvider } from "../auth/AuthContext";
 import { setToken } from "../auth/token";
 import { PageHeading } from "../pages/library/parts";
 import { server } from "../test/server";
+import { savePosition } from "./scrollPositions";
 import { SECTIONS } from "./sections";
 
 const API = `${window.location.origin}/api`;
@@ -23,8 +24,9 @@ const member: components["schemas"]["MemberResponse"] = {
   role: "member",
 };
 
-function renderShell(path = "/chat", me: () => Response = () => HttpResponse.json(member)) {
+function renderShell(path = "/chat", me: () => Response = () => HttpResponse.json(member), seed?: () => void) {
   setToken("tok-1");
+  seed?.();
   server.use(http.get(`${API}/members/me`, me), http.get(`${API}/crops`, () => HttpResponse.json([])),
     http.get(`${API}/items`, () => HttpResponse.json([])),
     http.get(`${API}/retrieval/:crop/:topic`, () => HttpResponse.json({ detail: "x" }, { status: 404 })),
@@ -126,22 +128,43 @@ describe("app shell", () => {
     },
   );
 
-  it("scrolls to the top on a route change", async () => {
+  it("goes to the top on a plain navigation to a fresh location, whatever was saved for that path", async () => {
     const scrollTo = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
-    const user = renderShell("/chat");
-    await screen.findByText(/Signed in as Ada/);
+    const user = renderShell("/library");
+    await screen.findByRole("button", { name: /^Account/ });
+    savePosition("older-visit", "/chat", 500);
     scrollTo.mockClear();
-    await user.click(within(screen.getByRole("navigation", { name: "Main" })).getByRole("link", { name: "Library" }));
+    await user.click(screen.getByRole("link", { name: "Crop CMS" }));
+    expect(screen.getByRole("heading", { name: "Ask" })).toBeInTheDocument();
     expect(scrollTo).toHaveBeenCalledWith(0, 0);
+    expect(scrollTo).not.toHaveBeenCalledWith(0, 500);
     scrollTo.mockRestore();
   });
 
-  it("renders when window.scrollTo returns a Promise, as some browsers do", async () => {
+  it("restores the saved position on a tab return but not when the active tab goes home", async () => {
+    const scrollTo = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+    const user = renderShell("/library/basil/temperature");
+    const nav = screen.getByRole("navigation", { name: "Main" });
+    await screen.findByRole("button", { name: /^Account/ });
+    savePosition("seen", "/library/basil/temperature", 400);
+    await user.click(within(nav).getByRole("link", { name: "Ask" }));
+    scrollTo.mockClear();
+    await user.click(within(nav).getByRole("link", { name: "Library" }));
+    await vi.waitFor(() => expect(scrollTo).toHaveBeenCalledWith(0, 400));
+    scrollTo.mockClear();
+    await user.click(within(nav).getByRole("link", { name: "Library" }));
+    expect(scrollTo).toHaveBeenCalledWith(0, 0);
+    expect(scrollTo).not.toHaveBeenCalledWith(0, 400);
+    scrollTo.mockRestore();
+  });
+
+  it("renders when window.scrollTo returns a Promise, as some browsers do, including while restoring", async () => {
     const scrollTo = vi
       .spyOn(window, "scrollTo")
       .mockImplementation((() => Promise.resolve()) as unknown as typeof window.scrollTo);
-    renderShell("/chat");
+    renderShell("/chat", undefined, () => savePosition("default", "/chat", 300));
     await screen.findByText(/Signed in as Ada/);
+    await vi.waitFor(() => expect(scrollTo).toHaveBeenCalledWith(0, 300));
     expect(screen.getAllByRole("banner")).toHaveLength(1);
     expect(within(screen.getByRole("main")).getByRole("heading", { name: "Ask" })).toBeInTheDocument();
     scrollTo.mockRestore();

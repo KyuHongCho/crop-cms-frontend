@@ -240,9 +240,14 @@ source's provenance line (`BookOpenCheck`, `Forward`). On the Library pages: err
 
 - 4px grid: 4 / 8 / 12 / 16 / 24 / 32 / 48.
 - Gutters 16 / 24 / 32px at base / `sm` / `lg`.
-- `html` has `scroll-padding-top: 4.5rem` so anchor and `scrollIntoView` jumps (a source card from its
-  marker) land below the 56px sticky bar, not under it. A route change scrolls to the top; browser Back
-  still restores the old position.
+- A source card has `scroll-mt-18` (4.5rem) so the jump from its citation marker (`scrollIntoView`) lands
+  below the 56px sticky bar, not under it. There is deliberately no `scroll-padding-top` on `html`: it made
+  the page scroll whenever a bar link took keyboard focus. Scroll is owned by the app
+  (`src/shell/ScrollMemory.tsx`), which sets `history.scrollRestoration = "manual"`: a new page opens at
+  the top; Back, Forward and reload put each history entry back at the position saved while it was
+  scrolled (`sessionStorage`, at most 50 entries, dropped on logout or a token change), and a tab return
+  does the same for the section's last page. A page reports that its data is shown (`usePageReady`)
+  before the restore runs, and the restore gives up 2 s after the navigation.
 - 56px top bar (`src/shell/AppShell.tsx`): logo and wordmark linking to `/chat`, the nav "Ask · Library",
   and the member menu at the right. The nav is built from the sections list (`src/shell/sections.ts`); a tab
   is active for any path under its prefix (`aria-current`), links to the last page visited in that section

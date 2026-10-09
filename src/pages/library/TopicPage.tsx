@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useParams } from "react-router-dom";
 import SourceCard from "../../components/sources/SourceCard";
 import { fetchTopicSet, useLoad } from "./libraryApi";
+import { usePageReady } from "../../shell/ScrollMemory";
 import { useDocumentTitle } from "../../lib/useDocumentTitle";
 import { BackLink, documentCount, EmptyNote, LibraryError, LibraryLayout, LoadingBlock, PageHeading } from "./parts";
 
@@ -10,6 +11,7 @@ export default function TopicPage() {
   const load = useCallback(() => fetchTopicSet(cropSlug, topic), [cropSlug, topic]);
   const state = useLoad(load);
   useDocumentTitle(topic, cropSlug, "Library");
+  usePageReady(state.status !== "loading");
   // A route miss is also a 404; only the backend's "crop '<slug>' not found" says the crop is the missing part.
   const cropMissing =
     state.status === "error" && state.error?.status === 404 && /^crop .* not found$/.test(state.error.message) && state.error.message.includes(cropSlug)

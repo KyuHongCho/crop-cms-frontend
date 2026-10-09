@@ -6,6 +6,7 @@ import FormError from "../components/FormError";
 import { cn } from "@/lib/utils";
 import MemberMenu from "./MemberMenu";
 import { remember, rememberedLocation } from "./navMemory";
+import ScrollMemory from "./ScrollMemory";
 import { SECTIONS, allows, sectionFor } from "./sections";
 
 const navClass = (isActive: boolean) =>
@@ -21,11 +22,6 @@ export default function AppShell() {
   useEffect(() => {
     remember(pathname, search);
   }, [pathname, search]);
-  // Effect, not a scroll-restoration reset: browser Back still restores the old position.
-  // Block body: some browsers' scrollTo returns a Promise, which React would call as cleanup.
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
   return (
     <>
       <header className="sticky top-0 z-40 h-14 border-b bg-background">
@@ -44,7 +40,7 @@ export default function AppShell() {
                 <Link
                   key={s.id}
                   to={active ? s.home : rememberedLocation(s)}
-                  state={{ fromTab: true }}
+                  state={{ fromTab: true, resume: !active }}
                   aria-current={active ? "page" : undefined}
                   className={navClass(active)}
                 >
@@ -66,7 +62,9 @@ export default function AppShell() {
             </div>
           </div>
         )}
-        <Outlet />
+        <ScrollMemory>
+          <Outlet />
+        </ScrollMemory>
       </main>
     </>
   );

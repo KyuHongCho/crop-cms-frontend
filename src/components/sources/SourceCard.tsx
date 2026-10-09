@@ -25,7 +25,7 @@ export default function SourceCard({ doc }: { doc: Doc }) {
     <li
       id={doc.key ? sourceId(doc.key) : undefined}
       tabIndex={doc.key ? -1 : undefined}
-      className={cn("rounded-xl border bg-card p-4 text-sm text-card-foreground outline-none", doc.key && "focus:ring-3 focus:ring-ring")}
+      className={cn("scroll-mt-18 rounded-xl border bg-card p-4 text-sm text-card-foreground outline-none", doc.key && "focus:ring-3 focus:ring-ring")}
     >
       <h3 className="font-medium">
         {doc.key && <span className="mr-2 text-cite">{`[${doc.key}]`}</span>}
