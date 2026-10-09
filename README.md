@@ -8,6 +8,25 @@ ask crop questions and get cited answers.
 Stack: React 19, TypeScript, Vite, Tailwind CSS 4 with shadcn/ui components (Radix), Pretendard
 (self-hosted) and lucide icons. The design rules are in [`DESIGN.md`](DESIGN.md).
 
+| Ask, with an answer and its sources | Library topic |
+|---|---|
+| ![Ask page with an answer and the Sources panel, light theme](docs/images/ask-light.png) | ![Library topic page with a source card, light theme](docs/images/library-light.png) |
+| ![Ask page, dark theme](docs/images/ask-dark.png) | ![Library topic page, dark theme](docs/images/library-dark.png) |
+
+The screenshots come from the real app in Chromium with the end-to-end tests' mocked API (demo data,
+no backend); see [Screenshots](#screenshots).
+
+## Browser support
+
+Tailwind CSS 4 needs Chrome 111, Safari 16.4 or Firefox 128 at minimum
+([tailwindcss.com/docs/compatibility](https://tailwindcss.com/docs/compatibility)). The automated
+end-to-end tests run in Chromium and WebKit (WebKit is close to Safari, not identical). The
+maintainer also checked Safari by hand, without recording its version. Firefox is not tested.
+
+In Safari the Tab key reaches links only with Option-Tab, or after turning on "Press Tab to highlight
+each item on a webpage" in the Advanced pane of Safari settings; that is Safari's default, not a bug
+in this app ([Apple's guide](https://support.apple.com/guide/safari/cpsh003)).
+
 ## Why it exists
 
 [crop-cms-backend](https://github.com/KyuHongCho/crop-cms-backend) returns a topic's documents
@@ -38,13 +57,16 @@ The structured half of the planned chat, crop suitability from climate data, liv
 | Login and logout; the session is kept in `sessionStorage` for the tab, and an expired session returns to login with a notice | Admin screens (members, invites, unlock) |
 | Invite-only signup, with browser checks that mirror the server's limits and an automatic login | Editing or deleting documents |
 | `/chat` with every state above, plus `413` (topic too large), `503` (with a Retry button) and `422` | Deployment |
-| The login page shows the lockout wait when the backend's throttle answers `429` (about 15 minutes for a fresh default lockout) | Conversation history (the backend answers single questions) |
+| The login page shows the lockout wait when the backend's throttle answers `429` (about 15 minutes for a fresh default lockout) | Conversation history: a server-side saved list of past answers is planned; today the backend answers single questions and nothing is saved |
 | API types generated from the backend's OpenAPI, committed, with a drift check in CI | |
 | CI (a required `checks` job) and an advisory AI review on pull requests | |
 | Browser end-to-end tests in Chromium and WebKit (Playwright, API mocked), run by an advisory CI job | |
 | A pre-commit hook (typecheck, then lint) | |
 | A read-only Library at `/library`: crops, each crop's published topics with counts, and a topic's complete document set as source cards (login required in the UI; the API reads are public) | English / Korean interface (Korean text already renders in Pretendard; strings are kept as whole sentences for a later react-i18next pass) |
 | An app shell and theme: a top bar with Ask / Library navigation and an account menu with a Light / Dark / System theme choice (follows the OS by default, remembered per browser), and per-page browser titles | |
+| Each tab remembers its last page (Library returns to the topic you left); clicking the active tab goes to that section's home | |
+| The app owns Back, Forward and reload scroll restoration: it turns the browser's own off and restores the position of each history entry once the page's content has loaded | |
+| The Ask question and answer survive navigation within the session, including an answer that arrives after you left Ask; they are kept in memory and are lost on reload or logout | |
 
 ## Engineering highlights
 
@@ -146,11 +168,25 @@ alone) and drives the real app in Chromium and WebKit. Playwright intercepts eve
 there is no backend and no API key, and a request with no mock fails the test. The first run needs
 the browsers: `npx playwright install chromium webkit` (on Linux add `--with-deps`). WebKit is close
 to Safari, not identical. The tests check what jsdom cannot: that every signed-in route renders,
-including when `window.scrollTo` returns a Promise, and that the tabs work with real mouse clicks.
-`typecheck` also covers `e2e/`.
+including when `window.scrollTo` returns a Promise, that the tabs work with real mouse clicks and
+remember their last page, that Back, Forward and reload restore the scroll position, and that the Ask
+answer is still there after visiting the Library. 46 tests pass (23 in each
+browser). `typecheck` also covers `e2e/`.
 
 What the offline tests cannot show, such as the real backend's answers, is checked by hand:
 [`docs/manual-checks.md`](docs/manual-checks.md).
+
+## Screenshots
+
+`docs/images/` holds four PNGs (about 30-60 KB each). To regenerate them:
+
+```bash
+npx playwright test -c scripts/capture/playwright.config.ts
+```
+
+It starts its own dev server on port 5198, reuses the e2e mocks in `e2e/fixtures.ts` (no backend, no
+API key) and writes `docs/images/ask-*.png` and `docs/images/library-*.png` in Chromium. It is not
+part of `npm run e2e` or CI.
 
 ## Scripts
 
