@@ -5,20 +5,26 @@
 A React + TypeScript single-page app for the crop CMS backend: log in, sign up with an invite code,
 ask crop questions and get cited answers.
 
+Stack: React 19, TypeScript, Vite, Tailwind CSS 4 with shadcn/ui components (Radix), Pretendard
+(self-hosted) and lucide icons. The design rules are in [`DESIGN.md`](DESIGN.md).
+
 ## Why it exists
 
 [crop-cms-backend](https://github.com/KyuHongCho/crop-cms-backend) returns a topic's documents
 **complete** and answers crop questions with citations. This app is the first consumer of that API,
 and it makes those guarantees visible to a user:
 
-- **Citations** show the source, reference and link, whether the document was read first-hand or
-  through another source, the crop label, the condition and licence note when there are any, and the
-  full text on request.
+- **Citations**, listed in the Sources panel beside the answer, show the source, reference and link,
+  whether the document was read first-hand or through another source, the crop label, the condition
+  and licence note when there are any, and the full text on request.
 - **"No answer" is a state, not an error.** A declined question and a question with no relevant
   topic both show it, with the reason.
-- **A "cut off" banner** appears when the response's `truncated` flag is set, and only then.
+- **A "cut off" chip** appears when the response's `truncated` flag is set, and only then.
 - **Dropped topics are named**, so a reader sees what was left out to fit the size limit.
 - **The daily token budget message** says when the budget resets.
+- **The Library** shows the same complete, published document set a chat answer draws on, by crop and
+  topic, with the provenance of each document; drafts are never listed. A topic too large to return
+  whole shows the server's refusal instead of a cut-down list.
 
 The structured half of the planned chat, crop suitability from climate data, lives in
 [crop-climate-advisor](https://github.com/KyuHongCho/crop-climate-advisor).
@@ -36,6 +42,8 @@ The structured half of the planned chat, crop suitability from climate data, liv
 | API types generated from the backend's OpenAPI, committed, with a drift check in CI | Browser end-to-end tests |
 | CI (a required `checks` job) and an advisory AI review on pull requests | |
 | A pre-commit hook (typecheck, then lint) | |
+| A read-only Library at `/library`: crops, each crop's published topics with counts, and a topic's complete document set as source cards (login required in the UI; the API reads are public) | English / Korean interface (Korean text already renders in Pretendard; strings are kept as whole sentences for a later react-i18next pass) |
+| An app shell and theme: a top bar with Ask / Library navigation and an account menu with a Light / Dark / System theme choice (follows the OS by default, remembered per browser), and per-page browser titles | |
 
 ## Engineering highlights
 
@@ -52,10 +60,14 @@ The structured half of the planned chat, crop suitability from climate data, liv
   [`src/api/client.ts`](src/api/client.ts) · [`src/pages/ChatPage.test.tsx`](src/pages/ChatPage.test.tsx) · [why](docs/design-notes.md#token-storage-and-sessions)
 - **Model and document text is rendered as plain text.** There is no `dangerouslySetInnerHTML`, and
   a link is made only for `http(s)` addresses, with `rel="noopener noreferrer"`.
-  [`src/components/AnswerView.tsx`](src/components/AnswerView.tsx) · [`src/components/Citations.tsx`](src/components/Citations.tsx) · [why](docs/design-notes.md#token-storage-and-sessions)
+  [`src/components/answer/AnswerView.tsx`](src/components/answer/AnswerView.tsx) · [`src/components/answer/citeText.tsx`](src/components/answer/citeText.tsx) · [`src/components/sources/SourceCard.tsx`](src/components/sources/SourceCard.tsx) · [why](docs/design-notes.md#token-storage-and-sessions)
 - **The question counter counts code points like the server, not UTF-16 units.** An emoji counts
   once, as it does on the server.
   [`src/pages/ChatPage.tsx`](src/pages/ChatPage.tsx) · [why](docs/design-notes.md#trade-offs-and-known-limits)
+- **Design:** one calm sage palette in light and dark, with every colour pair measured. A test fails
+  when `DESIGN.md`'s contrast table disagrees with the CSS, a pair falls below its floor, or a
+  generated component brings back a low-contrast class.
+  [`DESIGN.md`](DESIGN.md) · [`src/design/tokens.test.ts`](src/design/tokens.test.ts) · [`src/design/ui-classes.test.ts`](src/design/ui-classes.test.ts) · [why](docs/design-notes.md#design-system)
 - **Tests fail on any unhandled network request.** A call with no mock fails the test that made it,
   even when the app swallows the error.
   [`src/test/setup.ts`](src/test/setup.ts) · [why](docs/design-notes.md#testing-details)
@@ -72,7 +84,8 @@ Requires Node 22.11 or newer (built and tested on 22.11.0; see [Dependency pins 
 ```bash
 # 1. (backend checkout) Set up the backend by its Quickstart
 #    (https://github.com/KyuHongCho/crop-cms-backend#quickstart). Its steps 1-3 are enough for
-#    login and signup:
+#    login and signup. The Library and chat also need the seeded demo corpus (below); without it
+#    the Library shows no crops.
 #      .env with the passwords and SECRET_KEY, then
 docker compose up -d --build
 docker compose exec cms alembic upgrade head
@@ -153,6 +166,14 @@ other statuses (400/401/413/429/503).
 - `jsdom` is pinned `^26.1.0` (engines `node >=18`): `jsdom@27.1.0` needs Node
   `^20.19.0 || ^22.12.0 || >=24.0.0`, and this project was built on Node 22.11.0, which is below 22.12.
   Moving to Node 22.12+ lifts that constraint.
+- `@tailwindcss/oxide` (Tailwind 4) needs Node `>= 20` and `shadcn@4.21.4` needs Node `>=20.18.1`
+  (npm metadata). Both were run on 22.11.0: `npm i -D tailwindcss @tailwindcss/vite`,
+  `npx shadcn@4.21.4 init -t vite -b radix -p nova -y` and `npx shadcn@4.21.4 add input label textarea
+  card badge alert dropdown-menu separator skeleton -y`, then the full test, typecheck, lint and build
+  run. npm treats `engines` as advisory, so it would not have stopped a lower Node.
+- `shadcn` is a runtime dependency here, not a dev tool: `src/index.css` imports `shadcn/tailwind.css`.
+  The generated components import `cn` from the `cn` package, not clsx and tailwind-merge, so two
+  conflicting Tailwind classes on one element are not merged; the later one in the stylesheet wins.
 - There is no `engines` field in `package.json`: the Node floor above is what was tested, not
   something every dependency enforces.
 
@@ -191,5 +212,8 @@ The labels `Review ongoing`, `Audit ongoing` and `Review finished` show its prog
 
 Source code: MIT — see [LICENSE](LICENSE). Crop data is not covered: it comes from the backend, and
 each document carries its own licence note, which the app shows under the citation.
+
+The Pretendard font, self-hosted from the `pretendard` npm package, is under the SIL Open Font
+License 1.1.
 
 Personal portfolio repository — issues are welcome; external pull requests are not accepted.

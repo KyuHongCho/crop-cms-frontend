@@ -164,7 +164,8 @@ describe("login and session", () => {
     server.use(http.get(`${API}/members/me`, () => HttpResponse.json(member)));
     renderApp("/chat");
     const user = userEvent.setup();
-    await user.click(await screen.findByRole("button", { name: "Log out" }));
+    await user.click(await screen.findByRole("button", { name: /^Account/ }));
+    await user.click(await screen.findByRole("menuitem", { name: "Log out" }));
     expect(screen.getByRole("heading", { name: "Log in" })).toBeInTheDocument();
     expect(getToken()).toBeNull();
     expect(screen.queryByText(/session expired/i)).not.toBeInTheDocument();

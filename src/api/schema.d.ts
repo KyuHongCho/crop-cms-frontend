@@ -129,12 +129,39 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Items */
+        /**
+         * Get Items
+         * @description Published documents; `status=all` adds drafts and needs an editor or admin token.
+         *
+         *     The default path ignores the token: the frontend sends one on every request, and a 401 on it
+         *     would end the session.
+         */
         get: operations["get_items_items_get"];
         put?: never;
         /** Create Item */
         post: operations["create_item_items_post"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/items/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Item
+         * @description Hard-delete a document and its chunks; 200 returns the deleted row, since there is no
+         *     backup or audit record to recover it from.
+         */
+        delete: operations["delete_item_items__item_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1091,7 +1118,11 @@ export interface operations {
     };
     get_items_items_get: {
         parameters: {
-            query?: never;
+            query?: {
+                status?: "published" | "all";
+                limit?: number;
+                offset?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1105,6 +1136,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ItemResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -1124,6 +1164,37 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItemResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_item_items__item_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };

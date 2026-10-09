@@ -2,7 +2,15 @@ import { useState, type FormEvent } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { client } from "../api/client";
 import { isApiError, normaliseError } from "../api/errors";
+import { Info } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
+import Logo from "@/components/brand/Logo";
+import FormError from "@/components/FormError";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useDocumentTitle } from "@/lib/useDocumentTitle";
 
 // Mirrors MemberCreate in the backend; the server stays the authority (422 is still shown).
 // The email rule is exactly the server's, no stricter. Lengths count code points like pydantic.
@@ -22,6 +30,7 @@ function validate(f: Fields): string | null {
 }
 
 export default function SignupPage() {
+  useDocumentTitle("Sign up");
   const { token, login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -72,36 +81,50 @@ export default function SignupPage() {
   }
 
   return (
-    <main>
-      <h1>Sign up</h1>
-      <form onSubmit={onSubmit} noValidate>
-        <label>
-          Email
-          <input type="text" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        </label>
-        <label>
-          Password
-          <input type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-        </label>
-        <label>
-          Display name (optional)
-          <input type="text" autoComplete="nickname" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
-        </label>
-        <label>
-          Invite code
-          <input type="text" autoComplete="off" value={inviteCode} onChange={(e) => setInviteCode(e.target.value)} required />
-        </label>
-        {error && <p role="alert">{error}</p>}
-        {accountCreated && error && (
-          <p role="status">
-            Your account was created, but signing you in failed. <Link to="/login">Go to log in</Link>.
+    <main className="flex min-h-svh flex-col items-center justify-center gap-6 px-4 py-8">
+      <Logo className="text-xl text-primary" />
+      <Card className="w-full max-w-sm">
+        <CardHeader>
+          <CardTitle>
+            <h1 className="text-2xl leading-tight font-semibold">Sign up</h1>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="signup-email">Email</Label>
+              <Input id="signup-email" type="text" autoComplete="username" className="text-base!" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="signup-password">Password</Label>
+              <Input id="signup-password" type="password" autoComplete="new-password" className="text-base!" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="signup-display-name">Display name (optional)</Label>
+              <Input id="signup-display-name" type="text" autoComplete="nickname" className="text-base!" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="signup-invite-code">Invite code</Label>
+              <Input id="signup-invite-code" type="text" autoComplete="off" className="text-base!" value={inviteCode} onChange={(e) => setInviteCode(e.target.value)} required />
+            </div>
+            {error && <FormError>{error}</FormError>}
+            {accountCreated && error && (
+              <p role="status" className="flex items-start gap-2 rounded-lg bg-notice px-3 py-2 text-sm text-notice-foreground">
+                <Info aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+                <span>
+                  Your account was created, but signing you in failed. <Link to="/login" className="underline underline-offset-4">Go to log in</Link>.
+                </span>
+              </p>
+            )}
+            <Button type="submit" size="lg" disabled={busy}>Sign up</Button>
+          </form>
+        </CardContent>
+        <CardFooter className="text-sm">
+          <p>
+            Already have an account? <Link to="/login" className="text-primary underline underline-offset-4">Log in</Link>
           </p>
-        )}
-        <button type="submit" disabled={busy}>Sign up</button>
-      </form>
-      <p>
-        Already have an account? <Link to="/login">Log in</Link>
-      </p>
+        </CardFooter>
+      </Card>
     </main>
   );
 }

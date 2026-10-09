@@ -1,12 +1,19 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { client } from "../api/client";
 import { isApiError, normaliseError, type ApiError } from "../api/errors";
 import { formatReset } from "../api/format";
 import type { components } from "../api/schema";
-import { useAuth } from "../auth/AuthContext";
-import AnswerView from "../components/AnswerView";
+import { useMember } from "../auth/MemberContext";
+import { CircleAlert, Hourglass, WifiOff } from "lucide-react";
+import AnswerView from "../components/answer/AnswerView";
+import FormError from "../components/FormError";
+import SourcesPanel from "../components/sources/SourcesPanel";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
+import { useDocumentTitle } from "@/lib/useDocumentTitle";
+import { cn } from "@/lib/utils";
 
-type Member = components["schemas"]["MemberResponse"];
 type Chat = components["schemas"]["ChatResponse"];
 type Result = { answer: Chat } | { error: ApiError } | { offline: true } | null;
 
@@ -30,38 +37,13 @@ function errorMessage(err: ApiError): string {
 }
 
 export default function ChatPage() {
-  const { logout } = useAuth();
-  const [member, setMember] = useState<Member | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  useDocumentTitle("Ask");
+  const { member, refresh: refreshMember } = useMember();
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<Result>(null);
   const [lastAsked, setLastAsked] = useState("");
   const inFlight = useRef(false);
-
-  useEffect(() => {
-    let live = true;
-    client
-      .GET("/members/me")
-      .then(({ data, response }) => {
-        if (!live) return;
-        if (data) setMember(data);
-        else if (response.status !== 401) setError(`Could not load your profile (${response.status}).`);
-      })
-      .catch(() => live && setError("Could not reach the server."));
-    return () => {
-      live = false;
-    };
-  }, []);
-
-  async function refreshMember() {
-    try {
-      const { data } = await client.GET("/members/me");
-      if (data) setMember(data);
-    } catch {
-      // the indicator stays on its last value; the answer is already shown
-    }
-  }
 
   const trimmed = question.trim();
   // The server counts code points (pydantic), not UTF-16 units; emoji would otherwise count twice.
@@ -101,46 +83,79 @@ export default function ChatPage() {
   }
 
   return (
-    <main>
-      <h1>Chat</h1>
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+      <h1 className="mb-4 text-2xl leading-tight font-semibold">Ask</h1>
       {member && (
-        <p>
-          Signed in as {member.display_name || member.email}. Tokens used today:{" "}
-          {member.tokens_used_today} / {member.tokens_budget_daily}
+        <p className="mb-4 text-sm text-muted-foreground">
+          {`Signed in as ${member.display_name || member.email} · Tokens used today: ${member.tokens_used_today} / ${member.tokens_budget_daily}`}
         </p>
       )}
-      {error && <p role="alert">{error}</p>}
-      <form onSubmit={onSubmit}>
-        <label>
+      <form onSubmit={onSubmit} className="max-w-[68ch]">
+        <label className="mb-1.5 block text-sm font-medium">
           Question
-          <textarea
+          <Textarea
+            className="mt-1.5 text-base!"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             rows={4}
             aria-describedby="question-count"
           />
         </label>
-        <p id="question-count" className={tooLong ? "over" : undefined}>
-          {count} / {MAX_QUESTION} characters (leading and trailing spaces not counted)
+        <p
+          id="question-count"
+          className={cn("mt-2 mb-3 flex items-start gap-1.5 text-sm", tooLong ? "text-destructive" : "text-muted-foreground")}
+        >
+          {tooLong && <CircleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0" />}
+          <span>{`${count} / ${MAX_QUESTION} characters (leading and trailing spaces not counted)`}</span>
         </p>
-        <button type="submit" disabled={!canSubmit}>
+        <Button type="submit" disabled={!canSubmit}>
           Ask
-        </button>
+        </Button>
       </form>
-      {loading && <p role="status">Waiting for the answer...</p>}
-      {result && "answer" in result && <AnswerView data={result.answer} />}
-      {result && "offline" in result && <p role="alert">Could not reach the server. Try again.</p>}
+      <div role="status" className={loading ? "mt-8 max-w-[68ch] space-y-3" : "sr-only"}>
+        {loading ? (
+          <>
+            <Skeleton aria-hidden="true" className="h-4 w-full" />
+            <Skeleton aria-hidden="true" className="h-4 w-5/6" />
+            <p className="text-sm text-muted-foreground">Waiting for the answer...</p>
+          </>
+        ) : (
+          result && "answer" in result && (result.answer.abstained ? "No answer was given." : "Answer ready.")
+        )}
+      </div>
+      {result && "answer" in result && (
+        <div
+          className={cn(
+            "mt-8 grid gap-8",
+            result.answer.documents.length > 0 && "lg:grid-cols-[minmax(0,1fr)_22.5rem]",
+          )}
+        >
+          <AnswerView data={result.answer} />
+          <SourcesPanel documents={result.answer.documents} />
+        </div>
+      )}
+      {result && "offline" in result && (
+        <div className="mt-8 max-w-[68ch]">
+          <FormError icon={WifiOff}>Could not reach the server. Try again.</FormError>
+        </div>
+      )}
       {result && "error" in result && result.error.kind !== "unauthenticated" && (
-        <div role="alert">
-          <p>{errorMessage(result.error)}</p>
+        <div className="mt-8 max-w-[68ch] space-y-3">
+          {result.error.kind === "rate_limited" ? (
+            <div role="alert" className="flex items-start gap-2 rounded-lg bg-notice px-3 py-2 text-sm text-notice-foreground">
+              <Hourglass aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+              <p>{errorMessage(result.error)}</p>
+            </div>
+          ) : (
+            <FormError>{errorMessage(result.error)}</FormError>
+          )}
           {result.error.kind === "unavailable" && (
-            <button type="button" disabled={loading} onClick={() => void ask(lastAsked)}>
+            <Button type="button" variant="outline" disabled={loading} onClick={() => void ask(lastAsked)}>
               Retry
-            </button>
+            </Button>
           )}
         </div>
       )}
-      <button onClick={logout}>Log out</button>
-    </main>
+    </div>
   );
 }

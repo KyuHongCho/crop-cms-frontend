@@ -1,17 +1,38 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider, RequireAuth } from "./auth/AuthContext";
+import { MemberProvider } from "./auth/MemberContext";
 import ChatPage from "./pages/ChatPage";
+import CropPage from "./pages/library/CropPage";
+import LibraryPage from "./pages/library/LibraryPage";
+import TopicPage from "./pages/library/TopicPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
+import AppShell from "./shell/AppShell";
+import { ThemeProvider } from "./theme/ThemeProvider";
 
 export function AppRoutes() {
   return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/signup" element={<SignupPage />} />
-      <Route path="/chat" element={<RequireAuth><ChatPage /></RequireAuth>} />
-      <Route path="*" element={<Navigate to="/chat" replace />} />
-    </Routes>
+    <ThemeProvider>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route
+          element={
+            <RequireAuth>
+              <MemberProvider>
+                <AppShell />
+              </MemberProvider>
+            </RequireAuth>
+          }
+        >
+          <Route path="/chat" element={<ChatPage />} />
+          <Route path="/library" element={<LibraryPage />} />
+          <Route path="/library/:cropSlug" element={<CropPage />} />
+          <Route path="/library/:cropSlug/:topic" element={<TopicPage />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/chat" replace />} />
+      </Routes>
+    </ThemeProvider>
   );
 }
 

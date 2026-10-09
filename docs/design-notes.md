@@ -17,7 +17,9 @@ file or documented next to the code it concerns.
   unmeasured on a GitHub runner. [More below](#testing-details)
 - **The live-region behaviour is confirmed in the DOM only.** The answer is a polite, atomic live
   region; a test asserts `aria-live` and the label, while `aria-atomic` and screen-reader output are
-  unverified.
+  unverified. A separate status region exists from first paint and receives the "Answer ready."
+  text, so completion is a change to an existing region; whether a screen reader then announces the
+  answer once or twice is unchecked.
   [`src/pages/ChatPage.test.tsx`](../src/pages/ChatPage.test.tsx)
 - **Field limits are mirrored by hand.** `openapi-typescript` does not emit limits such as
   `max_length`, so the forms repeat the server's numbers; the server stays the authority and its
@@ -30,6 +32,11 @@ file or documented next to the code it concerns.
 - **The question counter counts trimmed code points.** The server counts code points too (pydantic),
   so an emoji is one character on both sides; UTF-16 units would count it twice.
   [`src/pages/ChatPage.tsx`](../src/pages/ChatPage.tsx)
+
+- **The theme choice is in `localStorage`.** Unlike the token, it is not a secret and should survive
+  a restart. [More below](#design-system)
+- **Colours are hex, not OKLCH.** The build keeps hex, so the contrast ratios computed from the CSS
+  are the shipped ones. [More below](#design-system)
 
 ## Token storage and sessions
 
@@ -58,13 +65,91 @@ The remaining exposure is script injection, so the app avoids the ways model or 
 become markup: there is no `dangerouslySetInnerHTML`, answers and citations render as plain text,
 and a citation URL becomes a link only when it parses as `http` or `https`, with
 `rel="noopener noreferrer"`.
-[`src/components/Citations.tsx`](../src/components/Citations.tsx)
+[`src/components/sources/SourceCard.tsx`](../src/components/sources/SourceCard.tsx)
 
 **A 401 ends the session only when the request's token is the one currently stored.** Otherwise a
 late 401 for a token the user already replaced (log out, log in again while a request is in flight)
 would end the new session. A test reproduces it and fails with the old condition.
 A bad login's 401 carries no token, so it never reads as an expired session.
 [`src/api/client.ts`](../src/api/client.ts)
+
+## Design system
+
+[`DESIGN.md`](../DESIGN.md) is the design guideline. It sits at the repo root beside the README, and
+not under `docs/`, so it is not confused with this file, which holds engineering rationale.
+
+- **Colour tokens are hex or a `var()` alias of a decided hex.** There is no OKLCH: shadcn's generated
+  OKLCH values are replaced, so the ratios the test computes are the ratios of the shipped CSS. Dark
+  mode is the `.dark` class on `<html>`.
+- **Two tests keep it true.** [`tokens.test.ts`](../src/design/tokens.test.ts) parses
+  `src/index.css`, computes every row of the contrast table, and compares it with `DESIGN.md`.
+  [`ui-classes.test.ts`](../src/design/ui-classes.test.ts) fails if a generated component brings
+  back one of the classes D11 removed (DESIGN.md section 2), or the app renders a variant the table
+  leaves out.
+  `DESIGN.md` lists what that guard cannot see.
+- **A few generated lines are edited by hand (D11, defined in [DESIGN.md](../DESIGN.md) section 2),**
+  for contrast only: `ring-ring/50` to `ring-ring`,
+  `hover:bg-primary/80` to `/90`, and `border-border` to `border-input` on the outline Button. A later
+  `npx shadcn add` can bring them back; the guard test then fails.
+- **Theme.** `light | dark | system`, stored in `localStorage` under `crop-cms-theme`, and set before
+  paint by an inline script in `index.html`. The script and
+  [`ThemeProvider`](../src/theme/ThemeProvider.tsx) repeat a few lines, because the script must run
+  before the bundle loads.
+- **The shell owns `<main>`.** [`AppShell`](../src/shell/AppShell.tsx) renders the 56px bar and then the
+  one `<main>` with the routed page inside it, so a page must not render its own. Login and signup sit
+  outside the shell and keep theirs. The member menu
+  ([`MemberMenu`](../src/shell/MemberMenu.tsx)) holds the email, the theme radio group and "Log out".
+- **`/members/me` is fetched once per session, in the shell.**
+  [`MemberProvider`](../src/auth/MemberContext.tsx) is keyed by the token, so a replaced session never
+  shows the previous member, and a response for an old token is dropped. The Ask page reads the member
+  from it and calls `refresh()` after an answer, so the request count is unchanged. Its error texts
+  ("Could not load your profile (N).", "Could not reach the server.") are shown in the shell.
+- **Citation markers mirror the backend's parser.** [`citeText`](../src/components/answer/citeText.tsx)
+  finds each `[...]` group, then each `S<digits>` inside it, as `dispatch.py` does, so `[S1]` and
+  `[S1, S2]` both work. A key that was sent becomes a link to `#source-<key>`; brackets, commas and
+  unknown keys such as `[S9]` stay text, and the characters rendered equal the model's text. The link
+  moves focus to the source card in script, because a bare fragment link does not reliably focus it.
+  A bare `S1` outside brackets is left as text. There is no HTML parsing.
+- **The Ask page is one card plus a sources panel.** [`ChatPage`](../src/pages/ChatPage.tsx) lays the
+  answer card ([`AnswerView`](../src/components/answer/AnswerView.tsx), 68ch) beside the panel
+  ([`SourcesPanel`](../src/components/sources/SourcesPanel.tsx), 360px from `lg`). The `answer` class on
+  the answer paragraph is only a test hook; its styling is Tailwind utilities, and the old
+  global component classes are gone.
+- **The Library is read-only and reuses the source card.** The pages in
+  [`src/pages/library/`](../src/pages/library/) are `/library` (crops), `/library/:cropSlug` (topics)
+  and `/library/:cropSlug/:topic` (documents), each one column of at most 48rem, left-aligned inside
+  the same 72rem container as the top bar, within the shell's `<main>`. The document list uses
+  [`SourceCard`](../src/components/sources/SourceCard.tsx), whose key (`[S1]`, `id`) is optional
+  because retrieval documents have none.
+- **The Library sits behind `RequireAuth`.** The shell (member menu, logout, budget) presumes a
+  member, and the audience is invite-only members. This is a UI choice, not a security boundary: the
+  backend's `GET /crops`, `/items` and `/retrieval/...` take no auth dependency, so anyone can read
+  them without a token.
+- **Only published documents appear.** Topics come from `GET /items` filtered to
+  `published === true && topic != null`, grouped per crop (the endpoint has no crop filter, and
+  items carry `crop_id`, which is matched against `/crops`). A topic's documents and its
+  `document_count` come from `GET /retrieval/{crop}/{topic}`, the same published set chat answers
+  from. The count beside a topic on the crop page is the number of published items in `/items`; the
+  topic page shows the server's count. Topic links use `encodeURIComponent`.
+- **Backend observation, no change made:** when the Library was built, `GET /items` returned
+  unpublished drafts to anyone without a token. Backend main now returns published items only by
+  default (drafts need `status=all` with an editor or admin token), and caps an unparameterised call
+  at 500 items, where the Library, which does not page, would silently stop. It also sends every body
+  just to list topics. Acceptable at about 60 items; the Library keeps its own published filter as a
+  guard.
+- **Library errors.** A 404 crop shows "No crop named ..." with an alert icon and a link back; a 413
+  shows the server's own message; loading shows skeletons with a status line. A topic that exists
+  nowhere returns 200 with zero documents, shown as an empty note. On the topic page a 404 reads
+  "No crop named ..." only when its detail names the crop (the backend's `crop '<slug>' not found`);
+  any other 404 shows the server's message. The offline text on the Library pages is
+  "Could not reach the server." without "Try again.", unlike Ask, login and signup, because the Library has no retry control.
+- **Page titles and focus.** Each page sets `document.title` ("Library · Crop CMS",
+  "<crop> · Library · Crop CMS", ...) through
+  [`useDocumentTitle`](../src/lib/useDocumentTitle.ts). Library pages render an h1 with
+  `tabIndex={-1}`, and when the route changes it takes focus only if focus was lost to `<body>` (the
+  followed link unmounted); a nav click keeps focus on the nav link. A first load, a
+  reload and back/forward leave focus alone; only in-app links move it. That h1 has no ring,
+  because it is not a control.
 
 ## Dev proxy and CORS
 
@@ -167,11 +252,25 @@ requires those outputs to be `success`.
 src/
   api/         client.ts (openapi-fetch + auth middleware), errors.ts, format.ts, schema.d.ts (generated),
                errors.test.ts, format.test.ts
-  auth/        AuthContext.tsx (login, logout, route guard), token.ts (sessionStorage), token.test.ts
-  pages/       LoginPage.tsx, SignupPage.tsx, ChatPage.tsx, ChatPage.test.tsx, SignupPage.test.tsx
-  components/  AnswerView.tsx, Citations.tsx
-  test/        server.ts (MSW), setup.ts (unhandled-request guard)
-  App.tsx, App.test.tsx (includes the login tests), main.tsx, index.css
+  auth/        AuthContext.tsx (login, logout, route guard), MemberContext.tsx (/members/me),
+               token.ts (sessionStorage), token.test.ts, MemberContext.test.tsx
+  shell/       AppShell.tsx (top bar, nav, main), MemberMenu.tsx, AppShell.test.tsx
+  pages/       LoginPage.tsx, SignupPage.tsx, ChatPage.tsx, ChatPage.test.tsx, SignupPage.test.tsx,
+               LoginPage.test.tsx,
+               library/ (LibraryPage.tsx, CropPage.tsx, TopicPage.tsx, parts.tsx, libraryApi.ts,
+               Library.test.tsx)
+  components/  FormError.tsx, brand/Logo.tsx,
+               answer/ (AnswerView.tsx, StatusChip.tsx, citeText.tsx + test),
+               sources/ (SourcesPanel.tsx, SourceCard.tsx, sourceLinks.ts),
+               ui/ (generated shadcn components; by hand: the D11 edits and the Badge `notice` variant)
+  lib/         utils.ts (re-exports cn), useDocumentTitle.ts
+  theme/       ThemeProvider.tsx, ThemeProvider.test.tsx
+  design/      contrast.ts, tokens.test.ts, ui-classes.test.ts (keep DESIGN.md true)
+  test/        server.ts (MSW), setup.ts (unhandled-request guard, storage and theme reset)
+  App.tsx, App.test.tsx, main.tsx, index.css
+DESIGN.md      design guideline (colour, type, layout, components, accessibility)
+components.json  shadcn configuration
+public/        favicon.svg
 scripts/       check-api.mjs
 .githooks/     pre-commit
 .github/workflows/  ci.yml, agentic-review.yml
