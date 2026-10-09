@@ -75,6 +75,17 @@ describe("app shell", () => {
     scrollTo.mockRestore();
   });
 
+  it("renders when window.scrollTo returns a Promise, as some browsers do", async () => {
+    const scrollTo = vi
+      .spyOn(window, "scrollTo")
+      .mockImplementation((() => Promise.resolve()) as unknown as typeof window.scrollTo);
+    renderShell("/chat");
+    await screen.findByText(/Signed in as Ada/);
+    expect(screen.getAllByRole("banner")).toHaveLength(1);
+    expect(within(screen.getByRole("main")).getByRole("heading", { name: "Ask" })).toBeInTheDocument();
+    scrollTo.mockRestore();
+  });
+
   it("shows the profile error in the shell with an icon", async () => {
     renderShell("/library", () => HttpResponse.json({ detail: "x" }, { status: 500 }));
     const alert = await screen.findByRole("alert");
