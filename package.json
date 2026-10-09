@@ -7,8 +7,10 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && npm run typecheck:e2e",
+    "typecheck:e2e": "tsc -p tsconfig.e2e.json",
     "lint": "eslint .",
+    "e2e": "playwright test",
     "gen:api": "openapi-typescript ${OPENAPI_SRC:-http://127.0.0.1:8000/openapi.json} -o src/api/schema.d.ts",
     "check:api": "node scripts/check-api.mjs",
     "prepare": "git rev-parse --git-dir >/dev/null 2>&1 && git config core.hooksPath .githooks || true"
@@ -28,6 +30,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
+    "@playwright/test": "^1.64.0",
     "@tailwindcss/vite": "^4.3.3",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
