@@ -1,5 +1,14 @@
+import { clearNavMemory } from "../shell/navMemory";
+
 const KEY = "crop-cms.token";
 
 export const getToken = (): string | null => sessionStorage.getItem(KEY);
-export const setToken = (token: string): void => sessionStorage.setItem(KEY, token);
-export const clearToken = (): void => sessionStorage.removeItem(KEY);
+// Remembered locations belong to one session, so any token change drops them.
+export const setToken = (token: string): void => {
+  clearNavMemory();
+  sessionStorage.setItem(KEY, token);
+};
+export const clearToken = (): void => {
+  clearNavMemory();
+  sessionStorage.removeItem(KEY);
+};

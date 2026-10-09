@@ -244,7 +244,11 @@ source's provenance line (`BookOpenCheck`, `Forward`). On the Library pages: err
   marker) land below the 56px sticky bar, not under it. A route change scrolls to the top; browser Back
   still restores the old position.
 - 56px top bar (`src/shell/AppShell.tsx`): logo and wordmark linking to `/chat`, the nav "Ask · Library",
-  and the member menu at the right. Below `sm` the wordmark is hidden so the bar stays one row. The shell
+  and the member menu at the right. The nav is built from the sections list (`src/shell/sections.ts`); a tab
+  is active for any path under its prefix (`aria-current`), links to the last page visited in that section
+  (kept in `sessionStorage` until logout or a token change; a page the router no longer matches falls back
+  to the section home), and the active tab links to the section home. A tab click does not move focus to
+  the page heading. Below `sm` the wordmark is hidden so the bar stays one row. The shell
   owns the page's one `<main>`; pages render inside it and must not add another.
 - Ask page (`src/pages/ChatPage.tsx`): the answer card (`src/components/answer/`) in a column of at most
   68ch, and the sources panel (`src/components/sources/`) about 360px wide beside it from `lg`

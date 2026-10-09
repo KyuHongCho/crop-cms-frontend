@@ -15,16 +15,18 @@ export function LibraryLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
-// Following a link unmounts it and drops focus to <body>; focus moves on only if it was lost (a nav click keeps its own),
-// and never on POP (first load, reload, back/forward), where the browser or the user already chose the place.
+// Following a link unmounts it and drops focus to <body>; focus moves on only if it was lost, and never on POP
+// (first load, reload, back/forward) or a tab click (`fromTab`), where the user already chose the place; not left to
+// where focus happens to be, since Safari may not focus a clicked link.
 export function PageHeading({ className, children }: { className?: string; children: React.ReactNode }) {
   const ref = useRef<HTMLHeadingElement>(null);
-  const { pathname } = useLocation();
+  const { pathname, state } = useLocation();
   const navType = useNavigationType();
+  const fromTab = (state as { fromTab?: boolean } | null)?.fromTab === true;
   useEffect(() => {
-    if (navType === "POP") return;
+    if (navType === "POP" || fromTab) return;
     if (document.activeElement === document.body || document.activeElement === null) ref.current?.focus();
-  }, [pathname, navType]);
+  }, [pathname, navType, fromTab]);
   return (
     <h1 ref={ref} tabIndex={-1} className={`text-2xl leading-tight font-semibold outline-none ${className ?? ""}`.trim()}>
       {children}
