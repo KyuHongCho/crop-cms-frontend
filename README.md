@@ -169,9 +169,10 @@ there is no backend and no API key, and a request with no mock fails the test. T
 the browsers: `npx playwright install chromium webkit` (on Linux add `--with-deps`). WebKit is close
 to Safari, not identical. The tests check what jsdom cannot: that every signed-in route renders,
 including when `window.scrollTo` returns a Promise, that the tabs work with real mouse clicks and
-remember their last page, that Back, Forward and reload restore the scroll position, and that the Ask
-answer is still there after visiting the Library. 46 tests pass (23 in each
-browser). `typecheck` also covers `e2e/`.
+remember their last page, that Back, Forward and reload restore the scroll position, that the Ask
+answer is still there after visiting the Library, and that keyboard focus on a link or the Ask text
+box under the sticky bar is scrolled clear of it. `typecheck` also covers `e2e/` and
+`scripts/capture/`.
 
 What the offline tests cannot show, such as the real backend's answers, is checked by hand:
 [`docs/manual-checks.md`](docs/manual-checks.md).
@@ -195,7 +196,7 @@ part of `npm run e2e` or CI.
 | `dev` / `build` | Vite dev server / typecheck + production build |
 | `test` | Vitest + RTL + MSW, fully offline |
 | `e2e` | Playwright in Chromium and WebKit, API mocked |
-| `typecheck`, `lint` | `tsc --noEmit` for `src/` and for `e2e/` (`typecheck:e2e`), ESLint |
+| `typecheck`, `lint` | `tsc --noEmit` for `src/` and, via `typecheck:e2e`, for `e2e/`, `playwright.config.ts` and `scripts/capture/`; ESLint |
 | `gen:api` | Regenerate `src/api/schema.d.ts` (committed) |
 | `check:api` | Regenerate to a temp file and fail if it differs from the committed one |
 
@@ -232,7 +233,7 @@ to admins, and requires a pull request. It uses the Node version in `.nvmrc`, so
 version and no newer one.
 
 `e2e` installs Chromium and WebKit and runs `npm run e2e`; on failure it uploads the report and
-traces. It is advisory: it is not a required check, and it has not yet run on Linux.
+traces. It is advisory: it is not a required check.
 
 `schema-drift` regenerates the API types from the backend's main and fails when the committed
 `src/api/schema.d.ts` disagrees. It is advisory; fix it with `npm run gen:api` against the backend
