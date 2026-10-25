@@ -102,7 +102,7 @@ Trade-offs, known limits and the full rationale: [`docs/design-notes.md`](docs/d
 
 ## Quickstart
 
-Requires Node 22.11 or newer (built and tested on 22.11.0; see [Dependency pins and Node](#dependency-pins-and-node)).
+Requires Node 22.23.4, the version in `.nvmrc` (the only version built and tested; see [Dependency pins and Node](#dependency-pins-and-node)).
 
 ```bash
 # 1. (backend checkout) Set up the backend by its Quickstart
@@ -212,8 +212,8 @@ other statuses (400/401/413/429/503).
 - `typescript` is pinned `~5.9.3`: `openapi-typescript@7.13.0` peers `typescript ^5.x` and
   `typescript-eslint@8.71.1` peers `typescript >=4.8.4 <6.1.0`, so TypeScript 6.1+ is not allowed yet.
 - `jsdom` is pinned `^26.1.0` (engines `node >=18`): `jsdom@27.1.0` needs Node
-  `^20.19.0 || ^22.12.0 || >=24.0.0`, and this project was built on Node 22.11.0, which is below 22.12.
-  Moving to Node 22.12+ lifts that constraint.
+  `^20.19.0 || ^22.12.0 || >=24.0.0`. The project now runs on Node 22.23.4, which satisfies that, but
+  `jsdom` 27 has not been tried, so the pin stays until someone runs the tests on it.
 - `@tailwindcss/oxide` (Tailwind 4) needs Node `>= 20` and `shadcn@4.21.4` needs Node `>=20.18.1`
   (npm metadata). Both were run on 22.11.0: `npm i -D tailwindcss @tailwindcss/vite`,
   `npx shadcn@4.21.4 init -t vite -b radix -p nova -y` and `npx shadcn@4.21.4 add input label textarea
@@ -222,7 +222,7 @@ other statuses (400/401/413/429/503).
 - `shadcn` is a runtime dependency here, not a dev tool: `src/index.css` imports `shadcn/tailwind.css`.
   The generated components import `cn` from the `cn` package, not clsx and tailwind-merge, so two
   conflicting Tailwind classes on one element are not merged; the later one in the stylesheet wins.
-- There is no `engines` field in `package.json`: the Node floor above is what was tested, not
+- There is no `engines` field in `package.json`: the Node version above is what was tested, not
   something every dependency enforces.
 
 ## CI
