@@ -102,7 +102,7 @@ Trade-offs, known limits and the full rationale: [`docs/design-notes.md`](docs/d
 
 ## Quickstart
 
-Requires Node 22 (built and tested on 22.23.4, the version in `.nvmrc`; see [Dependency pins and Node](#dependency-pins-and-node)).
+Requires Node 22.23.4, the version in `.nvmrc` (the only version built and tested; see [Dependency pins and Node](#dependency-pins-and-node)).
 
 ```bash
 # 1. (backend checkout) Set up the backend by its Quickstart
@@ -222,7 +222,7 @@ other statuses (400/401/413/429/503).
 - `shadcn` is a runtime dependency here, not a dev tool: `src/index.css` imports `shadcn/tailwind.css`.
   The generated components import `cn` from the `cn` package, not clsx and tailwind-merge, so two
   conflicting Tailwind classes on one element are not merged; the later one in the stylesheet wins.
-- There is no `engines` field in `package.json`: the Node floor above is what was tested, not
+- There is no `engines` field in `package.json`: the Node version above is what was tested, not
   something every dependency enforces.
 
 ## CI
