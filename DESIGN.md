@@ -97,13 +97,13 @@ element uses an opaque token already covered by rows 1–3, 33 and 34 (the outli
 | 2 | foreground / card (= card-foreground; popover-foreground on popover) | 15.46 | 13.64 | 4.5 |
 | 3 | foreground / muted (= accent-fg/accent menu focus, secondary-fg/secondary chip, ghost and outline hover in light) | 13.10 | 12.14 | 4.5 |
 | 4 | muted-foreground / background | 5.83 | 7.86 | 4.5 |
-| 5 | muted-foreground / card | 6.30 | 7.16 | 4.5 |
+| 5 | muted-foreground / card (also the inactive nav tab) | 6.30 | 7.16 | 4.5 |
 | 6 | muted-foreground / muted | 5.34 | 6.37 | 4.5 |
 | 7 | primary-foreground / primary (default button, badge none) | 6.29 | 8.38 | 4.5 |
 | 8 | primary-foreground / primary 90% over card (default button hover) | 5.01 | 7.05 | 4.5 |
 | 9 | primary-foreground / primary 90% over background | 5.08 | 6.97 | 4.5 |
-| 10 | primary / background (links, nav) | 5.82 | 9.00 | 4.5 |
-| 11 | primary / card | 6.29 | 8.20 | 4.5 |
+| 10 | primary / background (links) | 5.82 | 9.00 | 4.5 |
+| 11 | primary / card (logo, active nav underline) | 6.29 | 8.20 | 4.5 |
 | 12 | primary / muted (link inside a hovered or focused row) | 5.34 | 7.30 | 4.5 |
 | 13 | ring (opaque) / background | 5.82 | 9.00 | 3 |
 | 14 | ring (opaque) / card | 6.29 | 8.20 | 3 |
@@ -250,13 +250,17 @@ source's provenance line (`BookOpenCheck`, `Forward`). On the Library pages: err
   scrolled (`sessionStorage`, at most 50 entries, dropped on logout or a token change), and a tab return
   does the same for the section's last page. A page reports that its data is shown (`usePageReady`)
   before the restore runs, and the restore gives up 2 s after the navigation.
-- 56px top bar (`src/shell/AppShell.tsx`): logo and wordmark linking to `/chat`, the nav "Ask · Library",
-  and the member menu at the right. The nav is built from the sections list (`src/shell/sections.ts`); a tab
-  is active for any path under its prefix (`aria-current`), links to the last page visited in that section
-  (kept in `sessionStorage` until logout or a token change; a page the router no longer matches falls back
-  to the section home), and the active tab links to the section home. A tab click does not move focus to
-  the page heading. Below `sm` the wordmark is hidden so the bar stays one row. The shell
-  owns the page's one `<main>`; pages render inside it and must not add another.
+- 56px top bar (`src/shell/AppShell.tsx`) on the card surface (`bg-card`, with a bottom border) so it reads
+  apart from the page: logo and wordmark linking to `/chat`, the nav "Ask · Library", and the member menu at
+  the right. The active tab is marked by a 2px `primary` underline set 8px below the text, in medium weight,
+  and not by a filled pill: `muted` on `card` measures 1.18 (light) and 1.12 (dark), below the 3:1 WCAG 2.2
+  SC 1.4.11 asks of a state indicator, while `primary` on `card` is 6.29 / 8.20 (row 11). The nav is built
+  from the sections list (`src/shell/sections.ts`); a tab is active for any path under its prefix
+  (`aria-current`), links to the last page visited in that section (kept in `sessionStorage` until logout or
+  a token change; a page the router no longer matches falls back to the section home), and the active tab
+  links to the section home. A tab click does not move focus to the page heading. Below `sm` the wordmark is
+  hidden so the bar stays one row. The shell owns the page's one `<main>`; pages render inside it and must
+  not add another.
 - Ask page (`src/pages/ChatPage.tsx`): the answer card (`src/components/answer/`) in a column of at most
   68ch, and the sources panel (`src/components/sources/`) about 360px wide beside it from `lg`
   (1024px and up), stacked below that.
