@@ -23,7 +23,8 @@ schema migrated for login and signup, and the demo corpus seeded and embedded fo
       Light / Dark / System / Log out, Enter selects, Escape closes and returns focus to the button.
 - [ ] Choose Dark in the menu, reload: it stays dark with no flash. Choose System and change the OS
       setting: the page follows without a reload.
-- [ ] The current page (Ask or Library) is underlined in the nav; the logo and wordmark go to `/chat`.
+- [ ] The top bar is white in light mode and the lifted dark green in dark mode, distinct from the page body.
+- [ ] The current page (Ask or Library) has an accent-green underline and medium-weight text in the nav, with no filled background; the logo and wordmark go to `/chat`.
 
 ## Library
 

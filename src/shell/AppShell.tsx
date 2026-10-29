@@ -11,8 +11,10 @@ import { SECTIONS, allows, sectionFor } from "./sections";
 
 const navClass = (isActive: boolean) =>
   cn(
-    "inline-flex h-8 items-center rounded-lg px-2.5 text-sm font-medium underline-offset-4 outline-none focus-visible:ring-3 focus-visible:ring-ring",
-    isActive ? "text-foreground underline" : "text-muted-foreground hover:text-foreground",
+    "inline-flex h-8 items-center rounded-lg px-2.5 text-sm underline-offset-4 outline-none focus-visible:ring-3 focus-visible:ring-ring",
+    isActive
+      ? "font-medium text-foreground underline decoration-primary decoration-2 underline-offset-8"
+      : "text-muted-foreground hover:text-foreground",
   );
 
 export default function AppShell() {
@@ -24,7 +26,7 @@ export default function AppShell() {
   }, [pathname, search]);
   return (
     <>
-      <header className="sticky top-0 z-40 h-14 border-b bg-background">
+      <header className="sticky top-0 z-40 h-14 border-b bg-card">
         <div className="mx-auto flex h-full max-w-6xl items-center gap-2 px-4 sm:px-6 lg:px-8">
           <Link
             to="/chat"
