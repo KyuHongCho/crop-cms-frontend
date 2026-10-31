@@ -11,7 +11,7 @@ import { SECTIONS, allows, sectionFor } from "./sections";
 
 const navClass = (isActive: boolean) =>
   cn(
-    "inline-flex h-8 items-center rounded-lg px-2.5 text-sm underline-offset-4 outline-none focus-visible:ring-3 focus-visible:ring-ring",
+    "inline-flex h-8 items-center rounded-lg px-2.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring",
     isActive
       ? "font-medium text-foreground underline decoration-primary decoration-2 underline-offset-8"
       : "text-muted-foreground hover:text-foreground",
