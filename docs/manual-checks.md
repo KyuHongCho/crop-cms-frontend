@@ -114,10 +114,17 @@ need none of that: they use MSW.
 - [ ] 429: set your budget to 0 from the backend repo, then ask a question (the check runs before
       any model call, so this spends nothing):
       `docker compose exec db psql -U postgres -d cms -c "UPDATE members SET tokens_budget_daily = 0 WHERE email = 'you@example.com'"`.
-      You see "Daily budget used up. It resets in about N hours." Asking again still sends a
-      request (the server decides), and gets the same answer until the reset. Restore the budget
-      afterwards (the default is 20000); the next successful answer clears the message.
+      You see "Daily budget used up. It resets in about N hours." followed by "If you are using the
+      shared demo login, other visitors' questions count against the same budget." Asking again
+      still sends a request (the server decides), and gets the same answer until the reset. Restore
+      the budget afterwards (the default is 20000); the next successful answer clears the message.
 - [ ] 503 (for example a provider key missing or rejected): "Service unavailable, try later." with
       a Retry button.
+- [ ] 502 or 504 (a proxy that got no answer from the app): Ask shows "Service unavailable, try
+      later." with a Retry button; the Library shows "The server did not answer. Try again in a
+      moment." The dev server cannot show this: with its proxy target down it answers `500`, which
+      Ask shows as "Request failed (500)".
+- [ ] Offline (turn the network off in DevTools, then ask): "Could not reach the server. Try again."
+      with a Retry button, and the question is still in the box. Retry sends it again.
 - [ ] A truncated answer shows "cut off and may be incomplete". It depends on the model's output
       length, so it is hard to trigger by hand; the tests cover it.

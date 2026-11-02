@@ -42,6 +42,21 @@ describe("normaliseError", () => {
     });
   });
 
+  it.each([502, 504])("maps %i with an empty body to unavailable and says the server did not answer", (status) => {
+    expect(normaliseError(status, "")).toEqual({
+      kind: "unavailable",
+      status,
+      message: "The server did not answer. Try again in a moment.",
+    });
+  });
+
+  it("prefers a 502 detail to the fallback message", () => {
+    expect(normaliseError(502, { detail: "upstream closed" })).toMatchObject({
+      kind: "unavailable",
+      message: "upstream closed",
+    });
+  });
+
   it("maps 400 and 503", () => {
     expect(normaliseError(400, { detail: "x" }).kind).toBe("bad_request");
     expect(normaliseError(503, { detail: "x" }).kind).toBe("unavailable");

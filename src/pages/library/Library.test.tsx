@@ -211,6 +211,14 @@ describe("Library", () => {
     expect(alert.querySelector("svg.lucide-circle-alert")).not.toBeNull();
   });
 
+  it.each([502, 504])("shows the did-not-answer message for a %i from the proxy", async (status) => {
+    server.use(http.get(`${API}/crops`, () => new HttpResponse(null, { status })));
+    renderAt("/library");
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("The server did not answer. Try again in a moment.");
+    expect(alert.querySelector("svg.lucide-circle-alert")).not.toBeNull();
+  });
+
   it("shows the offline message with the wifi-off icon when the network fails", async () => {
     server.use(http.get(`${API}/crops`, () => HttpResponse.error()));
     renderAt("/library");

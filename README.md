@@ -56,7 +56,7 @@ The structured half of the planned chat, crop suitability from climate data, liv
 |---|---|
 | Login and logout; the session is kept in `sessionStorage` for the tab, an expired session returns to login with a notice; after login you return to the page you were on | Admin screens (members, invites, unlock) |
 | Invite-only signup, with browser checks that mirror the server's limits and an automatic login | Editing or deleting documents |
-| `/chat` with every state above, plus `413` (topic too large), `503` (with a Retry button) and `422` | Deployment |
+| `/chat` with every state above, plus `413` (topic too large), `503`, `502` and `504` (each with a Retry button), a lost connection (also with a Retry button) and `422` | Deployment |
 | The login page shows the lockout wait when the backend's throttle answers `429` (about 15 minutes for a fresh default lockout) | Conversation history: a server-side saved list of past answers is planned; today the backend answers single questions and nothing is saved |
 | API types generated from the backend's OpenAPI, committed, with a drift check in CI | |
 | CI (a required `checks` job) and an advisory AI review on pull requests | |
@@ -206,7 +206,7 @@ part of `npm run e2e` or CI.
 `npm test`.
 
 Generated types cover only the declared 200/201/204 success responses and 422; `src/api/errors.ts` hand-maps the
-other statuses (400/401/413/429/503).
+other statuses (400/401/413/429/502/503/504).
 
 ## Dependency pins and Node
 

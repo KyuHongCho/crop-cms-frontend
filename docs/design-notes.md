@@ -201,15 +201,28 @@ route. [`normaliseError`](../src/api/errors.ts) turns every case into
 | Signup, invite unusable | `400`, `"Invalid or expired invite"` | `bad_request` | The server's text, as given |
 | Signup, email taken | `400`, `"Email already registered"` | `bad_request` | The server's text, as given |
 | Any request body refused | `422`, `detail` is a list | `validation` | The items' `msg` values joined with "; " |
-| Chat, daily budget spent | `429`, `"Daily token budget exhausted"`, `Retry-After` in seconds | `rate_limited` | "Daily budget used up. It resets in about N hours." |
+| Chat, daily budget spent | `429`, `"Daily token budget exhausted"`, `Retry-After` in seconds | `rate_limited` | "Daily budget used up. It resets in about N hours." followed by "If you are using the shared demo login, other visitors' questions count against the same budget." |
 | Login, throttled | `429`, `"Too many failed attempts"`, `Retry-After` in seconds | `rate_limited` | "Too many failed attempts. Try again in about N minutes." |
 | Chat, one topic too large | `413`, `detail` is an object with a `message` | `too_large` | The object's `message` |
 | Chat, model unavailable | `503`, a fixed string | `unavailable` | "Service unavailable, try later." with a Retry button |
+| Any request, the proxy got no answer from the app | `502` or `504`, empty body | `unavailable` | Chat: as for `503`. Login and signup: "Service unavailable, try again later." Library: "The server did not answer. Try again in a moment." |
+| Chat, no response at all | None (the request failed in the browser) | None; the Ask page keeps an offline result | "Could not reach the server. Try again." with a Retry button |
 
 Rows are checked against [`src/api/errors.ts`](../src/api/errors.ts), the login, signup and chat
 pages in [`src/pages/`](../src/pages/), and the backend's `app/router/member.py`,
 `app/router/chat.py` and `app/auth/budget.py` on its main branch. A `Retry-After` that is missing or
 not a positive number leaves `retryAfter` unset, and the pages then fall back to "Try again later."
+
+The app cannot tell a shared demo account from a personal one, so every chat `429` carries the
+shared-login sentence. A `500` stays "Request failed (500)". The dev server's proxy answers `500`,
+not `502`, when its target is down, so a stopped backend in development shows that text.
+
+**Lost connection, a known limit.** A phone that locks or goes to the background mid-wait may end the
+request, and Ask then shows the offline text (unverified: not tried on a phone). Whether the backend
+keeps spending tokens when the client disconnects is also **unverified**; closing the tab mid-wait and
+comparing "Tokens used today" after the answer would have finished would show it. The offline text
+says nothing about the cost, and Retry sends the question again, which can spend again. There is no
+resume and no polling. The question stays in the box.
 
 ## Testing details
 

@@ -14,10 +14,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { useDocumentTitle } from "@/lib/useDocumentTitle";
 import { cn } from "@/lib/utils";
 
+// The app cannot tell a shared demo account from a personal one, so the note is for every 429.
+const SHARED_BUDGET_NOTE = "If you are using the shared demo login, other visitors' questions count against the same budget.";
+
 function budgetMessage(retryAfter?: number): string {
-  return retryAfter
+  const first = retryAfter
     ? `Daily budget used up. It resets in ${formatReset(retryAfter)}.`
     : "Daily budget used up. Try again later.";
+  return `${first} ${SHARED_BUDGET_NOTE}`;
 }
 
 function errorMessage(err: ApiError): string {
@@ -36,6 +40,12 @@ export default function ChatPage() {
   const { member } = useMember();
   const { question, setQuestion, loading, result, lastAsked, ask } = useAsk();
   usePageReady(!loading);
+
+  const retryButton = (
+    <Button type="button" variant="outline" disabled={loading} onClick={() => void ask(lastAsked)}>
+      Retry
+    </Button>
+  );
 
   const trimmed = question.trim();
   // The server counts code points (pydantic), not UTF-16 units; emoji would otherwise count twice.
@@ -101,8 +111,9 @@ export default function ChatPage() {
         </div>
       )}
       {result && "offline" in result && (
-        <div className="mt-8 max-w-[68ch]">
+        <div className="mt-8 max-w-[68ch] space-y-3">
           <FormError icon={WifiOff}>Could not reach the server. Try again.</FormError>
+          {retryButton}
         </div>
       )}
       {result && "error" in result && result.error.kind !== "unauthenticated" && (
@@ -115,11 +126,7 @@ export default function ChatPage() {
           ) : (
             <FormError>{errorMessage(result.error)}</FormError>
           )}
-          {result.error.kind === "unavailable" && (
-            <Button type="button" variant="outline" disabled={loading} onClick={() => void ask(lastAsked)}>
-              Retry
-            </Button>
-          )}
+          {result.error.kind === "unavailable" && retryButton}
         </div>
       )}
     </div>

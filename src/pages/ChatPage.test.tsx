@@ -517,6 +517,30 @@ describe("chat: errors", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Daily budget used up. It resets in about 3 hours.");
   });
 
+  it("429 keeps the first sentence and adds the shared-login sentence", async () => {
+    useMe();
+    useChat(() =>
+      HttpResponse.json({ detail: "Daily token budget exhausted" }, { status: 429, headers: { "Retry-After": "10800" } }),
+    );
+    const user = await openChat();
+    await ask(user);
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent(
+      /^Daily budget used up\. It resets in about 3 hours\. If you are using the shared demo login, other visitors' questions count against the same budget\.$/,
+    );
+    expect(alert.querySelector("svg.lucide-hourglass")).not.toBeNull();
+  });
+
+  it("429 without Retry-After also adds the shared-login sentence", async () => {
+    useMe();
+    useChat(() => HttpResponse.json({ detail: "Daily token budget exhausted" }, { status: 429 }));
+    const user = await openChat();
+    await ask(user);
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      /^Daily budget used up\. Try again later\. If you are using the shared demo login, other visitors' questions count against the same budget\.$/,
+    );
+  });
+
   it("a submit after a 429 reaches the server, and a 200 clears the 429 message", async () => {
     useMe();
     let n = 0;
@@ -584,6 +608,35 @@ describe("chat: errors", () => {
     expect(await screen.findByRole("region", { name: "Answer" })).toHaveTextContent("Water basil when dry [S1].");
     expect(calls).toEqual([{ question: "water basil?" }, { question: "water basil?" }]);
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it.each([502, 504])("%i with an empty body shows the unavailable text and Retry resends the same question", async (status) => {
+    useMe();
+    let n = 0;
+    const calls = useChat(() => (++n === 1 ? new HttpResponse(null, { status }) : HttpResponse.json(chat())));
+    const user = await openChat();
+    await ask(user, "  water basil?  ");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Service unavailable, try later.");
+    await user.click(screen.getByRole("button", { name: "Retry" }));
+    expect(await screen.findByRole("region", { name: "Answer" })).toHaveTextContent("Water basil when dry [S1].");
+    expect(calls).toEqual([{ question: "water basil?" }, { question: "water basil?" }]);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("offline shows Retry, keeps the question in the box, and Retry resends the same question", async () => {
+    useMe();
+    let n = 0;
+    const calls = useChat(() => (++n === 1 ? HttpResponse.error() : HttpResponse.json(chat())));
+    const user = await openChat();
+    await ask(user, "  water basil?  ");
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent(/^Could not reach the server\. Try again\.$/);
+    expect(screen.getByLabelText("Question")).toHaveValue("  water basil?  ");
+    await user.click(screen.getByRole("button", { name: "Retry" }));
+    expect(await screen.findByRole("region", { name: "Answer" })).toHaveTextContent("Water basil when dry [S1].");
+    expect(calls).toEqual([{ question: "water basil?" }, { question: "water basil?" }]);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Retry" })).not.toBeInTheDocument();
   });
 
   it("401 clears the session and returns to login", async () => {
