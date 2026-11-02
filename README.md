@@ -54,7 +54,7 @@ The structured half of the planned chat, crop suitability from climate data, liv
 
 | Works today | Not built yet |
 |---|---|
-| Login and logout; the session is kept in `sessionStorage` for the tab, and an expired session returns to login with a notice | Admin screens (members, invites, unlock) |
+| Login and logout; the session is kept in `sessionStorage` for the tab, an expired session returns to login with a notice; after login you return to the page you were on | Admin screens (members, invites, unlock) |
 | Invite-only signup, with browser checks that mirror the server's limits and an automatic login | Editing or deleting documents |
 | `/chat` with every state above, plus `413` (topic too large), `503` (with a Retry button) and `422` | Deployment |
 | The login page shows the lockout wait when the backend's throttle answers `429` (about 15 minutes for a fresh default lockout) | Conversation history: a server-side saved list of past answers is planned; today the backend answers single questions and nothing is saved |
@@ -67,6 +67,7 @@ The structured half of the planned chat, crop suitability from climate data, liv
 | Each tab remembers its last page (Library returns to the topic you left); clicking the active tab goes to that section's home | |
 | The app owns Back, Forward and reload scroll restoration: it turns the browser's own off and restores the position of each history entry once the page's content has loaded | |
 | The Ask question and answer survive navigation within the session, including an answer that arrives after you left Ask; they are kept in memory and are lost on reload or logout | |
+| The login page says what the app is and where the demo login comes from; `index.html` has a description, link-preview text (no image), a `noscript` message and `noindex`, and `public/robots.txt` blocks nothing | |
 
 ## Engineering highlights
 

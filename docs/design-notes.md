@@ -73,6 +73,16 @@ would end the new session. A test reproduces it and fails with the old condition
 A bad login's 401 carries no token, so it never reads as an expired session.
 [`src/api/client.ts`](../src/api/client.ts)
 
+**Login returns to the page the user was on.** `RequireAuth` passes `state.from` (the pathname only, so a
+query string is not restored) and `LoginPage` follows it only when it starts with a single `/`, holds no
+tab, CR, LF or backslash, and is not `/login` or `/signup` (with or without a trailing slash); anything
+else, or no `from`, goes to `/chat`. `RequireAuth`'s pathname is percent-encoded and never has those
+characters, so the check matters only for a value written into the history state by script on the same
+origin. A browser would read such a value as another origin, which React Router refuses by throwing and
+leaving a blank page; the check sends it to `/chat` instead. It does not restrict which same-origin path
+that script may choose. A typed question is not kept across an expiry.
+[`src/pages/LoginPage.tsx`](../src/pages/LoginPage.tsx) · [`src/pages/LoginPage.test.tsx`](../src/pages/LoginPage.test.tsx)
+
 ## Design system
 
 [`DESIGN.md`](../DESIGN.md) is the design guideline. It sits at the repo root beside the README, and
@@ -267,10 +277,10 @@ src/
   theme/       ThemeProvider.tsx, ThemeProvider.test.tsx
   design/      contrast.ts, tokens.test.ts, ui-classes.test.ts (keep DESIGN.md true)
   test/        server.ts (MSW), setup.ts (unhandled-request guard, storage and theme reset)
-  App.tsx, App.test.tsx, main.tsx, index.css
+  App.tsx, App.test.tsx, main.tsx, index.css, index-html.test.ts (the tags in index.html)
 DESIGN.md      design guideline (colour, type, layout, components, accessibility)
 components.json  shadcn configuration
-public/        favicon.svg
+public/        favicon.svg, robots.txt
 scripts/       check-api.mjs
 .githooks/     pre-commit
 .github/workflows/  ci.yml, agentic-review.yml

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useLocation } from "react-router-dom";
 import type { ApiError } from "../api/errors";
 import { isApiError } from "../api/errors";
 import { formatReset } from "../api/format";
@@ -33,15 +33,26 @@ function loginMessage(e: unknown): string {
   }
 }
 
+// A browser drops a tab, CR or LF and reads "\" as "/", so "//host", "/\host" and "/<tab>/host" all name
+// another origin, which React Router refuses by throwing; a pathname from RequireAuth never holds them.
+function returnPath(state: unknown): string {
+  const from = (state as { from?: unknown } | null)?.from;
+  if (typeof from !== "string" || !from.startsWith("/") || from.startsWith("//")) return "/chat";
+  if (/[\t\r\n\\]/.test(from)) return "/chat";
+  if (/^\/(login|signup)\/?$/.test(from)) return "/chat";
+  return from;
+}
+
 export default function LoginPage() {
   const { token, sessionExpired, login } = useAuth();
+  const to = returnPath(useLocation().state);
   useDocumentTitle("Log in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  if (token) return <Navigate to="/chat" replace />;
+  if (token) return <Navigate to={to} replace />;
 
   async function onSubmit(ev: FormEvent) {
     ev.preventDefault();
@@ -64,6 +75,9 @@ export default function LoginPage() {
           <CardTitle>
             <h1 className="text-2xl leading-tight font-semibold">Log in</h1>
           </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Ask crop-growing questions and read answers with the source documents alongside them.
+          </p>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           {sessionExpired && (
@@ -72,6 +86,10 @@ export default function LoginPage() {
               Your session expired. Please log in again.
             </p>
           )}
+          <p className="text-sm text-muted-foreground">
+            Trying the demo? The email and password came with the application message. Paste them
+            rather than typing: repeated wrong attempts lock a login for a while.
+          </p>
           <form onSubmit={onSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="login-email">Email</Label>
