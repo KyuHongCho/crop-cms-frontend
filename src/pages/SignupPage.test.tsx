@@ -120,6 +120,14 @@ describe("signup", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("String should match pattern; too short");
   });
 
+  it.each([502, 504])("shows the unavailable text for a %i from the proxy", async (status) => {
+    server.use(http.post(`${API}/members/signup`, () => new HttpResponse(null, { status })));
+    renderApp();
+    await fill();
+    expect(await screen.findByRole("alert")).toHaveTextContent(/^Service unavailable, try again later\.$/);
+    expect(getToken()).toBeNull();
+  });
+
   it("points to /login when signup worked but the follow-up login failed", async () => {
     server.use(
       http.post(`${API}/members/signup`, () => HttpResponse.json(member, { status: 201 })),
@@ -131,6 +139,18 @@ describe("signup", () => {
     const link = screen.getByRole("link", { name: "Go to log in" });
     expect(link).toHaveAttribute("href", "/login");
     expect(getToken()).toBeNull();
+  });
+
+  it("shows the did-not-answer text beside the account-created notice when the follow-up login gets a 502", async () => {
+    server.use(
+      http.post(`${API}/members/signup`, () => HttpResponse.json(member, { status: 201 })),
+      http.post(`${API}/members/login`, () => new HttpResponse(null, { status: 502 })),
+    );
+    renderApp();
+    await fill();
+    expect(await screen.findByText(/Your account was created/)).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent(/^The server did not answer\.$/);
+    expect(screen.getByRole("link", { name: "Go to log in" })).toHaveAttribute("href", "/login");
   });
 
   it.each<[string, Form, RegExp]>([

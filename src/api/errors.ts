@@ -18,8 +18,14 @@ const KIND_BY_STATUS: Record<number, ApiError["kind"]> = {
   413: "too_large",
   422: "validation",
   429: "rate_limited",
+  502: "unavailable",
   503: "unavailable",
+  504: "unavailable",
 };
+
+// A proxy's 502/504 carries no FastAPI `detail`, so the message has to come from the status.
+const NO_ANSWER = "The server did not answer.";
+const FALLBACK_BY_STATUS: Record<number, string> = { 502: NO_ANSWER, 504: NO_ANSWER };
 
 // FastAPI `detail` is a string, a list of validation items, or an object with `message`.
 function detailMessage(body: unknown, status: number): string {
@@ -32,7 +38,7 @@ function detailMessage(body: unknown, status: number): string {
     const message = (detail as { message?: unknown }).message;
     if (typeof message === "string") return message;
   }
-  return `Request failed (${status})`;
+  return FALLBACK_BY_STATUS[status] ?? `Request failed (${status})`;
 }
 
 export function normaliseError(status: number, body: unknown, headers?: Headers): ApiError {

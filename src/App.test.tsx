@@ -91,6 +91,14 @@ describe("login and session", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("value is not a valid email");
   });
 
+  it.each([502, 504])("shows the unavailable text for a %i from the proxy", async (status) => {
+    server.use(http.post(`${API}/members/login`, () => new HttpResponse(null, { status })));
+    renderApp("/login");
+    await logIn();
+    expect(await screen.findByRole("alert")).toHaveTextContent(/^Service unavailable, try again later\.$/);
+    expect(getToken()).toBeNull();
+  });
+
   describe("login throttle 429", () => {
     function throttled(headers?: Record<string, string>) {
       const bodies: unknown[] = [];
