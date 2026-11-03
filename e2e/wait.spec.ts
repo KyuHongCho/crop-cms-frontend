@@ -161,7 +161,7 @@ test.describe("at 375x667", () => {
   });
 });
 
-// Measured: the longer text wraps to two lines up to a 345px viewport in both browsers. Below 336px the
+// Measured: the longer text wraps to two lines up to a 346px viewport in both browsers. Below 336px the
 // top bar's account button already overflows sideways, which would add a scrollbar mid-test.
 test.describe("at 340x360, where the longer text wraps and the page scrolls", () => {
   test.use({ viewport: { width: 340, height: 360 } });

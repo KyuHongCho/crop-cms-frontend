@@ -133,8 +133,8 @@ not under `docs/`, so it is not confused with this file, which holds engineering
   shows no number. The provider records when the question was sent and the page re-arms its timer from
   that, so leaving Ask and coming back neither restarts the clock nor loses the change. There is no client
   timeout: an abort would be shown as the offline text, which is wrong for a request the server is still
-  working on. At default text size the text takes two lines in a viewport up to about 345px wide (measured
-  in Chromium and WebKit; one line from 350px), so that line reserves the height of two lines and the swap
+  working on. At default text size the text takes two lines in a viewport up to 346px wide (measured
+  in Chromium and WebKit; one line from 347px), so that line reserves the height of two lines and the swap
   moves nothing. That holds only at default text size: with the root font size at 200% and a 375px
   viewport, the status block grew from 192px to 232px at the swap (one more 40px line), while at 1280px and
   200%, and at 375px and 150%, it stayed the same (one manual measurement, not a test). Nothing renders
