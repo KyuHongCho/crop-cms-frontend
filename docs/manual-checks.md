@@ -121,8 +121,7 @@ need none of that: they use MSW.
 - [ ] 503 (for example a provider key missing or rejected): "Service unavailable, try later." with
       a Retry button.
 - [ ] 502 or 504 (a proxy that got no answer from the app): Ask shows "Service unavailable, try
-      later." with a Retry button; the Library shows "The server did not answer. Try again in a
-      moment." The dev server cannot show this: with its proxy target down it answers `500`, which
+      later." with a Retry button; the Library shows "The server did not answer." The dev server cannot show this: with its proxy target down it answers `500`, which
       Ask shows as "Request failed (500)".
 - [ ] Offline (turn the network off in DevTools, then ask): "Could not reach the server. Try again."
       with a Retry button, and the question is still in the box. Retry sends it again.

@@ -215,7 +215,7 @@ describe("Library", () => {
     server.use(http.get(`${API}/crops`, () => new HttpResponse(null, { status })));
     renderAt("/library");
     const alert = await screen.findByRole("alert");
-    expect(alert).toHaveTextContent("The server did not answer. Try again in a moment.");
+    expect(alert).toHaveTextContent(/^The server did not answer\.$/);
     expect(alert.querySelector("svg.lucide-circle-alert")).not.toBeNull();
   });
 

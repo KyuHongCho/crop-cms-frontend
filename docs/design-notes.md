@@ -205,7 +205,7 @@ route. [`normaliseError`](../src/api/errors.ts) turns every case into
 | Login, throttled | `429`, `"Too many failed attempts"`, `Retry-After` in seconds | `rate_limited` | "Too many failed attempts. Try again in about N minutes." |
 | Chat, one topic too large | `413`, `detail` is an object with a `message` | `too_large` | The object's `message` |
 | Chat, model unavailable | `503`, a fixed string | `unavailable` | "Service unavailable, try later." with a Retry button |
-| Any request, the proxy got no answer from the app | `502` or `504`, empty body | `unavailable` | Chat: as for `503`. Login and signup: "Service unavailable, try again later." Library: "The server did not answer. Try again in a moment." |
+| Any request, the proxy got no answer from the app | `502` or `504`, empty body | `unavailable` | Chat: as for `503`. Login and signup: "Service unavailable, try again later." Library, and the login that follows a successful signup: "The server did not answer." |
 | Chat, no response at all | None (the request failed in the browser) | None; the Ask page keeps an offline result | "Could not reach the server. Try again." with a Retry button |
 
 Rows are checked against [`src/api/errors.ts`](../src/api/errors.ts), the login, signup and chat

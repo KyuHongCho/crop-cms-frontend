@@ -141,6 +141,18 @@ describe("signup", () => {
     expect(getToken()).toBeNull();
   });
 
+  it("shows the did-not-answer text beside the account-created notice when the follow-up login gets a 502", async () => {
+    server.use(
+      http.post(`${API}/members/signup`, () => HttpResponse.json(member, { status: 201 })),
+      http.post(`${API}/members/login`, () => new HttpResponse(null, { status: 502 })),
+    );
+    renderApp();
+    await fill();
+    expect(await screen.findByText(/Your account was created/)).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent(/^The server did not answer\.$/);
+    expect(screen.getByRole("link", { name: "Go to log in" })).toHaveAttribute("href", "/login");
+  });
+
   it.each<[string, Form, RegExp]>([
     ["a 7-char password", { password: "a".repeat(7) }, /Password must be 8 to 128/],
     ["a 129-char password", { password: "a".repeat(129) }, /Password must be 8 to 128/],

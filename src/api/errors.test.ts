@@ -46,7 +46,7 @@ describe("normaliseError", () => {
     expect(normaliseError(status, "")).toEqual({
       kind: "unavailable",
       status,
-      message: "The server did not answer. Try again in a moment.",
+      message: "The server did not answer.",
     });
   });
 

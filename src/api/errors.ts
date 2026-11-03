@@ -24,7 +24,7 @@ const KIND_BY_STATUS: Record<number, ApiError["kind"]> = {
 };
 
 // A proxy's 502/504 carries no FastAPI `detail`, so the message has to come from the status.
-const NO_ANSWER = "The server did not answer. Try again in a moment.";
+const NO_ANSWER = "The server did not answer.";
 const FALLBACK_BY_STATUS: Record<number, string> = { 502: NO_ANSWER, 504: NO_ANSWER };
 
 // FastAPI `detail` is a string, a list of validation items, or an object with `message`.
