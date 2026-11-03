@@ -1,8 +1,8 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { MemoryRouter } from "react-router-dom";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { AppRoutes } from "../App";
 import type { components } from "../api/schema";
 import { AuthProvider, useAuth } from "../auth/AuthContext";
@@ -220,5 +220,230 @@ describe("ask retention", () => {
     releases[1]();
     expect(await screen.findByRole("region", { name: "Answer" })).toHaveTextContent("Answer for the new session.");
     await waitFor(() => expect(meCalls).toBe(meBefore + 1));
+  });
+});
+
+const realSetTimeout = globalThis.setTimeout;
+
+describe("the long wait", () => {
+  const WAITING = "Waiting for the answer...";
+  const STILL_WORKING = "Still working on your answer. This can take a while.";
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+  });
+
+  // Only what the page reads is faked; findBy* and waitFor drain through setTimeout, so `until` polls on the real one.
+  function freezeClock() {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
+  }
+  async function until(check: () => void) {
+    for (let i = 0; i < 200; i++) {
+      try {
+        return check();
+      } catch {
+        await act(() => new Promise<void>((r) => realSetTimeout(r, 5)));
+      }
+    }
+    check();
+  }
+  const advance = (ms: number) => act(() => vi.advanceTimersByTimeAsync(ms));
+  const shown = (text: string) => until(() => expect(screen.getByText(text)).toBeInTheDocument());
+  const statusBlock = () => screen.getByText(/Waiting for the answer|Still working on your answer/).closest('[role="status"]')!;
+  // user-event awaits through Testing Library's setTimeout drain, which hangs once setTimeout is faked.
+  const click = (el: HTMLElement) => fireEvent.click(el);
+
+  function heldChat() {
+    const releases: Array<() => void> = [];
+    server.use(
+      http.post(`${API}/chat`, async () => {
+        await new Promise<void>((r) => releases.push(r));
+        return HttpResponse.json(answer("Late answer."));
+      }),
+    );
+    return releases;
+  }
+
+  async function startWaiting() {
+    const releases = heldChat();
+    const user = await openApp();
+    await user.type(screen.getByLabelText("Question"), "Slow question");
+    freezeClock();
+    click(screen.getByRole("button", { name: "Ask" }));
+    await shown(WAITING);
+    return { releases };
+  }
+
+  it("changes the text once, at 8 seconds and not before", async () => {
+    useShellApi();
+    await startWaiting();
+    await advance(7999);
+    expect(screen.getByText(WAITING)).toBeInTheDocument();
+    expect(screen.queryByText(STILL_WORKING)).not.toBeInTheDocument();
+
+    await advance(1);
+    expect(screen.getByText(STILL_WORKING)).toBeInTheDocument();
+    expect(screen.queryByText(WAITING)).not.toBeInTheDocument();
+
+    await advance(60_000);
+    expect(screen.getByText(STILL_WORKING)).toBeInTheDocument();
+  });
+
+  it("changes the text inside the same status element and adds no region", async () => {
+    useShellApi();
+    await startWaiting();
+    const block = statusBlock();
+    const regions = () => document.querySelectorAll('[role="status"], [role="alert"], [aria-live]').length;
+    const before = regions();
+    await advance(8000);
+
+    expect(statusBlock()).toBe(block);
+    expect(block).toHaveTextContent(STILL_WORKING);
+    expect(regions()).toBe(before);
+  });
+
+  it("is cleared by the answer", async () => {
+    useShellApi();
+    const { releases } = await startWaiting();
+    await advance(8000);
+    expect(screen.getByText(STILL_WORKING)).toBeInTheDocument();
+    releases[0]();
+
+    await until(() => expect(screen.getByRole("region", { name: "Answer" })).toHaveTextContent("Late answer."));
+    expect(screen.queryByText(STILL_WORKING)).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Answer ready.");
+  });
+
+  it("is cleared by an error", async () => {
+    useShellApi();
+    const releases: Array<() => void> = [];
+    server.use(
+      http.post(`${API}/chat`, async () => {
+        await new Promise<void>((r) => releases.push(r));
+        return HttpResponse.json({ detail: "Provider down" }, { status: 503 });
+      }),
+    );
+    const user = await openApp();
+    await user.type(screen.getByLabelText("Question"), "Slow question");
+    freezeClock();
+    click(screen.getByRole("button", { name: "Ask" }));
+    await shown(WAITING);
+    await advance(8000);
+    expect(screen.getByText(STILL_WORKING)).toBeInTheDocument();
+
+    releases[0]();
+    await shown("Service unavailable, try later.");
+    expect(screen.queryByText(STILL_WORKING)).not.toBeInTheDocument();
+    expect(screen.queryByText(WAITING)).not.toBeInTheDocument();
+  });
+
+  it("does not restart when the user leaves Ask and comes back", async () => {
+    useShellApi();
+    await startWaiting();
+    await advance(5000);
+    click(tab("Library"));
+    await until(() => expect(screen.getByRole("heading", { level: 1, name: "Library" })).toBeInTheDocument());
+    await advance(2000);
+    click(tab("Ask"));
+    await shown(WAITING);
+
+    await advance(999);
+    expect(screen.getByText(WAITING)).toBeInTheDocument();
+    await advance(1);
+    expect(screen.getByText(STILL_WORKING)).toBeInTheDocument();
+  });
+
+  it("shows the longer text at once on returning after more than 8 seconds", async () => {
+    useShellApi();
+    await startWaiting();
+    click(tab("Library"));
+    await until(() => expect(screen.getByRole("heading", { level: 1, name: "Library" })).toBeInTheDocument());
+    await advance(9000);
+    click(tab("Ask"));
+
+    await shown(STILL_WORKING);
+    expect(screen.queryByText(WAITING)).not.toBeInTheDocument();
+  });
+
+  it("still changes the text when the 8 seconds end between the page's render and its effect", async () => {
+    useShellApi();
+    await startWaiting();
+    const askedAt = Date.now();
+    click(tab("Library"));
+    await until(() => expect(screen.getByRole("heading", { level: 1, name: "Library" })).toBeInTheDocument());
+    // The page is not in the DOM during its render and is during its effects, which tells the two reads apart.
+    vi.spyOn(Date, "now").mockImplementation(() => askedAt + (document.body.textContent?.includes(WAITING) ? 8000 : 7999));
+    click(tab("Ask"));
+    await shown(WAITING);
+
+    await advance(1);
+    expect(screen.getByText(STILL_WORKING)).toBeInTheDocument();
+  });
+
+  it("starts the 8 seconds again for a new question", async () => {
+    useShellApi();
+    const { releases } = await startWaiting();
+    await advance(8000);
+    expect(screen.getByText(STILL_WORKING)).toBeInTheDocument();
+    releases[0]();
+    await until(() => expect(screen.getByRole("region", { name: "Answer" })).toBeInTheDocument());
+
+    click(screen.getByRole("button", { name: "Ask" }));
+    await shown(WAITING);
+    await advance(7999);
+    expect(screen.getByText(WAITING)).toBeInTheDocument();
+    await advance(1);
+    expect(screen.getByText(STILL_WORKING)).toBeInTheDocument();
+  });
+
+  it("does not carry the wait of a replaced session into the next one", async () => {
+    useShellApi();
+    heldChat();
+    // No RequireAuth here: the provider survives logout, so only the token logic can stop the old wait.
+    function Controls() {
+      const { token, logout: out, login } = useAuth();
+      return (
+        <>
+          <p>{token ? `token ${token}` : "signed out"}</p>
+          <button onClick={out}>drop session</button>
+          <button onClick={() => void login("bea@example.com", "pw-123456")}>new session</button>
+        </>
+      );
+    }
+    setToken("tok-A");
+    render(
+      <MemoryRouter initialEntries={["/chat"]}>
+        <AuthProvider>
+          <MemberProvider>
+            <AskProvider>
+              <Controls />
+              <ChatPage />
+            </AskProvider>
+          </MemberProvider>
+        </AuthProvider>
+      </MemoryRouter>,
+    );
+    await screen.findByText(/Signed in as Ada/);
+    await userEvent.setup().type(screen.getByLabelText("Question"), "Old question");
+    freezeClock();
+    click(screen.getByRole("button", { name: "Ask" }));
+    await shown(WAITING);
+    await advance(8000);
+    expect(screen.getByText(STILL_WORKING)).toBeInTheDocument();
+
+    click(screen.getByRole("button", { name: "drop session" }));
+    click(screen.getByRole("button", { name: "new session" }));
+    await shown("token tok-B");
+    await until(() => expect(screen.getByLabelText("Question")).toHaveValue(""));
+    fireEvent.change(screen.getByLabelText("Question"), { target: { value: "New question" } });
+    click(screen.getByRole("button", { name: "Ask" }));
+    await shown(WAITING);
+
+    expect(screen.queryByText(STILL_WORKING)).not.toBeInTheDocument();
+    await advance(7999);
+    expect(screen.getByText(WAITING)).toBeInTheDocument();
+    await advance(1);
+    expect(screen.getByText(STILL_WORKING)).toBeInTheDocument();
   });
 });

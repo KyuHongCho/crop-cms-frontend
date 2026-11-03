@@ -10,14 +10,14 @@ export type AskResult = { answer: Chat } | { error: ApiError } | { offline: true
 
 export const MAX_QUESTION = 2000;
 
-type Fields = { question: string; loading: boolean; result: AskResult; lastAsked: string };
+type Fields = { question: string; loading: boolean; result: AskResult; lastAsked: string; askedAt: number | null };
 type State = Fields & { token: string | null };
 
 type Ctx = Fields & { setQuestion: (q: string) => void; ask: (text: string) => Promise<void> };
 
 const AskContext = createContext<Ctx | null>(null);
 
-const empty = (token: string | null): State => ({ token, question: "", loading: false, result: null, lastAsked: "" });
+const empty = (token: string | null): State => ({ token, question: "", loading: false, result: null, lastAsked: "", askedAt: null });
 
 export function AskProvider({ children }: { children: ReactNode }) {
   const { token } = useAuth();
@@ -49,7 +49,7 @@ export function AskProvider({ children }: { children: ReactNode }) {
       const n = [...q].length;
       if (n === 0 || n > MAX_QUESTION) return;
       inFlight.current = true;
-      patch({ loading: true, result: null, lastAsked: q });
+      patch({ loading: true, result: null, lastAsked: q, askedAt: Date.now() });
       let result: AskResult;
       try {
         const { data, error: body, response } = await client.POST("/chat", { body: { question: q } });
@@ -60,15 +60,23 @@ export function AskProvider({ children }: { children: ReactNode }) {
       // Logout or a 401 while the POST was out: this result belongs to a session that no longer exists.
       if (currentToken.current !== token) return;
       inFlight.current = false;
-      patch({ loading: false, result });
+      patch({ loading: false, result, askedAt: null });
       if ("answer" in result) void refreshMember();
     },
     [token, patch, refreshMember],
   );
 
   const value = useMemo<Ctx>(
-    () => ({ question: fields.question, loading: fields.loading, result: fields.result, lastAsked: fields.lastAsked, setQuestion, ask }),
-    [fields.question, fields.loading, fields.result, fields.lastAsked, setQuestion, ask],
+    () => ({
+      question: fields.question,
+      loading: fields.loading,
+      result: fields.result,
+      lastAsked: fields.lastAsked,
+      askedAt: fields.askedAt,
+      setQuestion,
+      ask,
+    }),
+    [fields.question, fields.loading, fields.result, fields.lastAsked, fields.askedAt, setQuestion, ask],
   );
   return <AskContext.Provider value={value}>{children}</AskContext.Provider>;
 }

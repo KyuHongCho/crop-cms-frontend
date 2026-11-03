@@ -353,6 +353,9 @@ set on `<html>`; `keep-all`; no layout that assumes English length. react-i18nex
 - A status region exists from first paint and reads "Answer ready." (or "No answer was given.") when
   the answer arrives; the answer itself sits in a polite, atomic live region labelled "Answer". Screen-reader
   output is unverified.
+- While a question waits, the same status region changes its text once, after 8 seconds, from "Waiting for the
+  answer..." to "Still working on your answer. This can take a while."; the layout, focus and scroll position do
+  not change.
 - An opaque focus ring of at least 3:1.
 - Full keyboard use, including the menu.
 - Label in Name.

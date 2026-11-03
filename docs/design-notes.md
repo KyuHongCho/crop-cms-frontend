@@ -125,6 +125,20 @@ not under `docs/`, so it is not confused with this file, which holds engineering
   ([`SourcesPanel`](../src/components/sources/SourcesPanel.tsx), 360px from `lg`). The `answer` class on
   the answer paragraph is only a test hook; its styling is Tailwind utilities, and the old
   global component classes are gone.
+- **A long wait changes the status text once.** After 8 seconds the text inside the existing status
+  region goes from "Waiting for the answer..." to "Still working on your answer. This can take a while.";
+  the skeletons stay, and an answer or an error clears it. It is one change and not a counter, because a
+  per-second change inside a status region is a per-second announcement. Whether a screen reader announces
+  that change is unverified. 8 seconds is a choice, not a measurement of how long answers take; the page
+  shows no number. The provider records when the question was sent and the page re-arms its timer from
+  that, so leaving Ask and coming back neither restarts the clock nor loses the change. There is no client
+  timeout: an abort would be shown as the offline text, which is wrong for a request the server is still
+  working on. At default text size the text takes two lines in a viewport up to 346px wide (measured
+  in Chromium and WebKit; one line from 347px), so that line reserves the height of two lines and the swap
+  moves nothing. That holds only at default text size: with the root font size at 200% and a 375px
+  viewport, the status block grew from 192px to 232px at the swap (one more 40px line), while at 1280px and
+  200%, and at 375px and 150%, it stayed the same (one manual measurement, not a test). Nothing renders
+  below the block while a question waits, so nothing is displaced.
 - **The Library is read-only and reuses the source card.** The pages in
   [`src/pages/library/`](../src/pages/library/) are `/library` (crops), `/library/:cropSlug` (topics)
   and `/library/:cropSlug/:topic` (documents), each one column of at most 48rem, left-aligned inside
@@ -239,6 +253,15 @@ only its own, with `onTestFinished` and `removeListener`
 
 **Vitest and CI.** With `CI=true`, vitest rejects a committed `.only` instead of silently skipping
 the rest of the file. It exits 1 when it finds no tests, with or without `CI`.
+
+**Timing tests fake only the clock.** The long-wait tests in
+[`src/shell/AskProvider.test.tsx`](../src/shell/AskProvider.test.tsx) fake `setTimeout`, `clearTimeout`
+and `Date` after the question is typed, and use `fireEvent` from then on. `findBy*`, `waitFor` and
+user-event all finish through a real-time `setTimeout`, so with it faked they never return; the file
+polls on the saved real timer instead. The browser specs in [`e2e/wait.spec.ts`](../e2e/wait.spec.ts)
+use Playwright's `page.clock`: install it before `goto`, pause it after load, and move time only with
+`runFor`, so no real time leaks into the 8 seconds. A page that scrolls is focused with
+`preventScroll` after it is scrolled, because WebKit moves a page that is focused first.
 
 **The late-401 tests wait a fixed 50 ms** after releasing the response, then assert that the session
 survived ([`src/pages/ChatPage.test.tsx`](../src/pages/ChatPage.test.tsx)). Measured on one

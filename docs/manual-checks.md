@@ -98,7 +98,9 @@ need none of that: they use MSW.
 - [ ] The answer is announced as a polite live region labelled "Answer". This is confirmed in the
       DOM by a test; screen-reader output has not been checked.
 - [ ] With VoiceOver and NVDA, the answer is announced once, not twice (the "Answer ready." status text
-      plus the "Answer" region). Not checked yet.
+      plus the "Answer" region). Not checked yet. Also listen for the 8 second change from "Waiting
+      for the answer..." to "Still working on your answer..." during a slow answer (see the check
+      below): whether it is announced, and how many times, is unknown.
 - [ ] Click a citation marker with the source card below the top bar at 1280px: the card lands below
       the bar, not under it.
 - [ ] Navigate Ask to Library from a scrolled page: the new page starts at the top; browser Back
@@ -111,6 +113,15 @@ need none of that: they use MSW.
 - [ ] Citations with a condition or licence note show them as "Condition: ..." / "Licence: ..."
       (plain text; nothing is shown when the document has none).
 - [ ] While waiting, "Ask" is disabled and a second click sends no second request.
+- [ ] A slow answer: while a question waits, the line under the skeletons reads "Waiting for the
+      answer..." and, after about 8 seconds, changes once to "Still working on your answer. This can
+      take a while.", with nothing else on the page moving (at default text size) and no further change after that; the
+      answer then replaces it. Needs an answer that takes longer than 8 seconds, so either ask a
+      question the backend is slow on or slow the request down: in Chrome DevTools, Network,
+      Throttling, add a custom profile with about 10000 ms latency (this method has not been tried).
+      Leaving to the Library after 5 seconds and returning at 7 should show the first text for one more
+      second. Check 375px and 340px wide; below about 336px the top bar's account button already makes
+      the page scroll sideways, with or without this change.
 - [ ] 429: set your budget to 0 from the backend repo, then ask a question (the check runs before
       any model call, so this spends nothing):
       `docker compose exec db psql -U postgres -d cms -c "UPDATE members SET tokens_budget_daily = 0 WHERE email = 'you@example.com'"`.
