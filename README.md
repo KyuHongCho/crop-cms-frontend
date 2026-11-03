@@ -67,6 +67,7 @@ The structured half of the planned chat, crop suitability from climate data, liv
 | Each tab remembers its last page (Library returns to the topic you left); clicking the active tab goes to that section's home | |
 | The app owns Back, Forward and reload scroll restoration: it turns the browser's own off and restores the position of each history entry once the page's content has loaded | |
 | The Ask question and answer survive navigation within the session, including an answer that arrives after you left Ask; they are kept in memory and are lost on reload or logout | |
+| A question that waits longer than 8 seconds changes its status text once, to "Still working on your answer. This can take a while.", with nothing on the page moving at default text size; leaving Ask and coming back does not restart the count | |
 | The login page says what the app is and where the demo login comes from; `index.html` has a description, link-preview text (no image), a `noscript` message and `noindex`, and `public/robots.txt` blocks nothing | |
 
 ## Engineering highlights
@@ -171,8 +172,9 @@ the browsers: `npx playwright install chromium webkit` (on Linux add `--with-dep
 to Safari, not identical. The tests check what jsdom cannot: that every signed-in route renders,
 including when `window.scrollTo` returns a Promise, that the tabs work with real mouse clicks and
 remember their last page, that Back, Forward and reload restore the scroll position, that the Ask
-answer is still there after visiting the Library, and that keyboard focus on a link or the Ask text
-box under the sticky bar is scrolled clear of it. `typecheck` also covers `e2e/` and
+answer is still there after visiting the Library, that keyboard focus on a link or the Ask text
+box under the sticky bar is scrolled clear of it and that the long-wait text appears after 8 seconds
+on a faked browser clock without moving the page. `typecheck` also covers `e2e/` and
 `scripts/capture/`.
 
 What the offline tests cannot show, such as the real backend's answers, is checked by hand:

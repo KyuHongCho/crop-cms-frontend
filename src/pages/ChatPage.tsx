@@ -1,4 +1,4 @@
-import type { FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import type { ApiError } from "../api/errors";
 import { formatReset } from "../api/format";
 import { useMember } from "../auth/MemberContext";
@@ -16,6 +16,26 @@ import { cn } from "@/lib/utils";
 
 // The app cannot tell a shared demo account from a personal one, so the note is for every 429.
 const SHARED_BUDGET_NOTE = "If you are using the shared demo login, other visitors' questions count against the same budget.";
+
+const WAIT_TEXT = "Waiting for the answer...";
+const LONG_WAIT_TEXT = "Still working on your answer. This can take a while.";
+const LONG_WAIT_MS = 8000;
+
+// The page unmounts on another route, so the start time lives in the provider and the timer is re-armed
+// from it; a clock restarted on return would understate the wait.
+function useLongWait(askedAt: number | null): boolean {
+  const [firedFor, setFiredFor] = useState<number | null>(() =>
+    askedAt !== null && Date.now() - askedAt >= LONG_WAIT_MS ? askedAt : null,
+  );
+  useEffect(() => {
+    if (askedAt === null) return;
+    // Never skip the timer: the render's clock read can be 1 ms behind this one.
+    const left = Math.max(LONG_WAIT_MS - (Date.now() - askedAt), 0);
+    const timer = setTimeout(() => setFiredFor(askedAt), left);
+    return () => clearTimeout(timer);
+  }, [askedAt]);
+  return askedAt !== null && firedFor === askedAt;
+}
 
 function budgetMessage(retryAfter?: number): string {
   const first = retryAfter
@@ -38,7 +58,8 @@ function errorMessage(err: ApiError): string {
 export default function ChatPage() {
   useDocumentTitle("Ask");
   const { member } = useMember();
-  const { question, setQuestion, loading, result, lastAsked, ask } = useAsk();
+  const { question, setQuestion, loading, result, lastAsked, askedAt, ask } = useAsk();
+  const longWait = useLongWait(askedAt);
   usePageReady(!loading);
 
   const retryButton = (
@@ -93,7 +114,7 @@ export default function ChatPage() {
           <>
             <Skeleton aria-hidden="true" className="h-4 w-full" />
             <Skeleton aria-hidden="true" className="h-4 w-5/6" />
-            <p className="text-sm text-muted-foreground">Waiting for the answer...</p>
+            <p className="min-h-10 text-sm text-muted-foreground">{longWait ? LONG_WAIT_TEXT : WAIT_TEXT}</p>
           </>
         ) : (
           result && "answer" in result && (result.answer.abstained ? "No answer was given." : "Answer ready.")
