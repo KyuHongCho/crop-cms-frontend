@@ -11,6 +11,7 @@ import { server } from "../test/server";
 
 const API = `${window.location.origin}/api`;
 const CODE = "x".repeat(20);
+const TAGLINE = "Crop-growing answers, each with its sources, mostly journal articles and FAO crop data you can open and check.";
 
 const member: components["schemas"]["MemberResponse"] = {
   id: 2,
@@ -58,6 +59,22 @@ function trackNetwork() {
   onTestFinished(() => server.events.removeListener("request:start", onStart));
   return calls;
 }
+
+describe("what the sign-up page says", () => {
+  it("shows the tagline as plain muted text between the logo and the card", () => {
+    renderApp();
+    const tagline = screen.getByText(TAGLINE);
+    const logo = screen.getByText("Crop CMS");
+    const card = document.querySelector('[data-slot="card"]')!;
+    expect(tagline.tagName).toBe("P");
+    expect(tagline).toHaveClass("text-muted-foreground");
+    expect(tagline).not.toHaveAttribute("role");
+    expect(tagline.querySelector("svg")).toBeNull();
+    expect(card.contains(tagline)).toBe(false);
+    expect(logo.compareDocumentPosition(tagline) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(tagline.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+});
 
 describe("signup", () => {
   it("signs up, logs in with the same credentials and lands on the protected page", async () => {
