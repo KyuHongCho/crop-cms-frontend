@@ -109,6 +109,23 @@ not under `docs/`, so it is not confused with this file, which holds engineering
   one `<main>` with the routed page inside it, so a page must not render its own. Login and signup sit
   outside the shell and keep theirs. The member menu
   ([`MemberMenu`](../src/shell/MemberMenu.tsx)) holds the email, the theme radio group and "Log out".
+- **One tagline on the login and sign-up pages.** [`AuthBrand`](../src/components/brand/AuthBrand.tsx)
+  puts the logo and the sentence "Crop-growing answers, each with its sources, mostly journal articles
+  and FAO crop data you can open and check." in one block above the card, as plain muted text (contrast
+  row 4 in DESIGN.md), 12px under the logo (the clear space DESIGN.md section 9 asks for) and no wider
+  than the card. `index.html` carries the same sentence as its description and link-preview text. The
+  sentence says "mostly" because most published documents are journal articles or FAO data sheets you
+  can open from their card, but one published note is a folk remedy, and its card shows plain text and
+  no link. Beyond that it claims only what a visitor can see: each answer that cites documents lists
+  them in a Sources panel, and the app marks whether a source was read directly. It does not call the
+  sources reliable or peer reviewed, because the corpus also holds FAO ECOCROP data sheets and that
+  folk-remedy note, and some sources are read through another article. Measured at 320, 340, 346, 360,
+  375 and 390px it wraps to 3 lines, and at 414, 768 and 1280px to 2, the same in both browsers and both
+  themes; `text-balance` evens the lines out so the last one is not a single word. At 375x667 the login
+  form stays above the fold with no scroll; at 320x568 the sign-up page scrolls by about 59px (nothing
+  is clipped), a known and accepted effect at the narrowest size. The login card keeps a one-line demo
+  hint ("Demo login: use the email and password from the application message."), which holds no address
+  or password.
 - **`/members/me` is fetched once per session, in the shell.**
   [`MemberProvider`](../src/auth/MemberContext.tsx) is keyed by the token, so a replaced session never
   shows the previous member, and a response for an old token is dropped. The Ask page reads the member
@@ -305,7 +322,7 @@ src/
                LoginPage.test.tsx,
                library/ (LibraryPage.tsx, CropPage.tsx, TopicPage.tsx, parts.tsx, libraryApi.ts,
                Library.test.tsx)
-  components/  FormError.tsx, brand/Logo.tsx,
+  components/  FormError.tsx, brand/ (Logo.tsx, AuthBrand.tsx),
                answer/ (AnswerView.tsx, StatusChip.tsx, citeText.tsx + test),
                sources/ (SourcesPanel.tsx, SourceCard.tsx, sourceLinks.ts),
                ui/ (generated shadcn components; by hand: the D11 edits and the Badge `notice` variant)

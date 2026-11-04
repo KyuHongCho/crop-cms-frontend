@@ -5,7 +5,7 @@ import { isApiError } from "../api/errors";
 import { formatReset } from "../api/format";
 import { Info } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
-import Logo from "@/components/brand/Logo";
+import AuthBrand from "@/components/brand/AuthBrand";
 import FormError from "@/components/FormError";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -69,15 +69,12 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-svh flex-col items-center justify-center gap-6 px-4 py-8">
-      <Logo className="text-xl text-primary" />
+      <AuthBrand />
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>
             <h1 className="text-2xl leading-tight font-semibold">Log in</h1>
           </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Ask crop-growing questions and read answers with the source documents alongside them.
-          </p>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           {sessionExpired && (
@@ -86,10 +83,7 @@ export default function LoginPage() {
               Your session expired. Please log in again.
             </p>
           )}
-          <p className="text-sm text-muted-foreground">
-            Trying the demo? The email and password came with the application message. Paste them
-            rather than typing: repeated wrong attempts lock a login for a while.
-          </p>
+          <p className="text-sm text-muted-foreground">Demo login: use the email and password from the application message.</p>
           <form onSubmit={onSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="login-email">Email</Label>

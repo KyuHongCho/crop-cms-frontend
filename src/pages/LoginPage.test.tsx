@@ -13,9 +13,8 @@ import LoginPage from "./LoginPage";
 
 const API = `${window.location.origin}/api`;
 
-const DESCRIPTION = "Ask crop-growing questions and read answers with the source documents alongside them.";
-const HINT =
-  "Trying the demo? The email and password came with the application message. Paste them rather than typing: repeated wrong attempts lock a login for a while.";
+const DESCRIPTION = "Crop-growing answers, each with its sources, mostly journal articles and FAO crop data you can open and check.";
+const HINT = "Demo login: use the email and password from the application message.";
 
 function mockLogin() {
   server.use(
@@ -83,7 +82,7 @@ describe("what the login page says", () => {
     );
   }
 
-  it("shows the one-line description and the demo hint as plain muted text", () => {
+  it("shows the tagline and the demo hint as plain muted text", () => {
     renderLogin();
     for (const text of [DESCRIPTION, HINT]) {
       const p = screen.getByText(text);
@@ -94,10 +93,34 @@ describe("what the login page says", () => {
     }
   });
 
+  it("puts the tagline between the logo and the card, not inside the card", () => {
+    renderLogin();
+    const tagline = screen.getByText(DESCRIPTION);
+    const logo = screen.getByText("Crop CMS");
+    const card = document.querySelector('[data-slot="card"]')!;
+    expect(card.contains(tagline)).toBe(false);
+    expect(logo.compareDocumentPosition(tagline) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(tagline.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: DESCRIPTION })).not.toBeInTheDocument();
+  });
+
+  it("keeps the demo hint inside the card, above the form", () => {
+    renderLogin();
+    const hint = screen.getByText(HINT);
+    expect(document.querySelector('[data-slot="card"]')!.contains(hint)).toBe(true);
+    expect(hint.compareDocumentPosition(screen.getByLabelText("Email")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it("has no @ in the hint, so no email address is written into it", () => {
     renderLogin();
     expect(HINT).not.toContain("@");
     expect(screen.getByText(HINT).textContent).not.toContain("@");
+  });
+
+  it("no longer carries the old description or the old two-sentence hint", () => {
+    renderLogin();
+    expect(screen.queryByText(/alongside them/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Trying the demo|Paste them|lock a login/)).not.toBeInTheDocument();
   });
 
   it("keeps the sign-up link, and shows no expiry notice on a fresh visit", () => {

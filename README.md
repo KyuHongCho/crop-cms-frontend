@@ -68,7 +68,7 @@ The structured half of the planned chat, crop suitability from climate data, liv
 | The app owns Back, Forward and reload scroll restoration: it turns the browser's own off and restores the position of each history entry once the page's content has loaded | |
 | The Ask question and answer survive navigation within the session, including an answer that arrives after you left Ask; they are kept in memory and are lost on reload or logout | |
 | A question that waits longer than 8 seconds changes its status text once, to "Still working on your answer. This can take a while.", with nothing on the page moving at default text size; leaving Ask and coming back does not restart the count | |
-| The login page says what the app is and where the demo login comes from; `index.html` has a description, link-preview text (no image), a `noscript` message and `noindex`, and `public/robots.txt` blocks nothing | |
+| Login and sign-up show one tagline between the logo and the card, and the login card tells a visitor where the demo login comes from; `index.html` repeats the tagline as its description and link-preview text (no image), and has a `noscript` message and `noindex`; `public/robots.txt` blocks nothing | |
 
 ## Engineering highlights
 

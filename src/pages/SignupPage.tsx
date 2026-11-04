@@ -4,7 +4,7 @@ import { client } from "../api/client";
 import { isApiError, normaliseError } from "../api/errors";
 import { Info } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
-import Logo from "@/components/brand/Logo";
+import AuthBrand from "@/components/brand/AuthBrand";
 import FormError from "@/components/FormError";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -82,7 +82,7 @@ export default function SignupPage() {
 
   return (
     <main className="flex min-h-svh flex-col items-center justify-center gap-6 px-4 py-8">
-      <Logo className="text-xl text-primary" />
+      <AuthBrand />
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>
