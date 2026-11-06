@@ -298,6 +298,7 @@ lucide-react: 16px inline, 20px for the account icon in the top bar, `aria-hidde
 | Read first-hand | — | `BookOpenCheck` |
 | Via another source | — | `Forward` |
 | Informational notice (session expired, account created) | notice | `Info` |
+| Demo-login hint | neutral | `Info` |
 
 An icon may be swapped only by updating this table.
 
@@ -305,7 +306,8 @@ An icon may be swapped only by updating this table.
 
 Our own hand-drawn sprout, drawn in `currentColor` (primary on the auth pages), `aria-hidden`, with the
 wordmark "Crop CMS" as real text beside it. Minimum size 24px for the mark; clear space of half the
-mark's height on every side. The same mark is `public/favicon.svg`.
+mark's height on every side of the whole logo, mark and wordmark together (the gap between the two is
+not part of the clear space). The same mark is `public/favicon.svg`.
 
 ## 10. Dark mode
 
@@ -328,9 +330,10 @@ mark's height on every side. The same mark is `public/favicon.svg`.
 - Not rendered: Button `secondary` / `destructive` / `link`; Badge `destructive` / `outline` / `ghost` / `link`;
   destructive menu items; `aria-invalid` styling. Using any of these later means measuring it first
   and adding a row to the table.
-- **Alert is for errors only**, because it carries `role="alert"`. Notices and neutral states use
-  `StatusChip` or a notice block with `role="status"`. The 429 budget message is the exception that
-  stays `role="alert"`, drawn as a notice block (row 18) with `Hourglass`.
+- **Alert is for errors only**, because it carries `role="alert"`. Notices and neutral states that are
+  announced use `StatusChip` or a notice block with `role="status"` (static hint text, which has no
+  role, is excepted: section 13). The 429 budget message is the exception that stays `role="alert"`,
+  drawn as a notice block (row 18) with `Hourglass`.
 - `StatusChip` is Badge `secondary` (neutral, row 3) or the local Badge `notice` variant
   (`bg-notice text-notice-foreground`, row 18), with a 16px icon beside the text.
 - Citation markers in the answer are ochre (`text-cite`, row 15) links to `#source-<key>`; the source
@@ -349,7 +352,9 @@ set on `<html>`; `keep-all`; no layout that assumes English length. react-i18nex
 ## 13. Accessibility checklist
 
 - A visible label on every field.
-- Errors use `role="alert"`, non-errors `role="status"`.
+- Errors use `role="alert"`, non-errors `role="status"`. Static hint text, such as the demo-login hint,
+  is neither and carries no role: it is present from first paint and not announced, unlike a status
+  that appears after a load.
 - A status region exists from first paint and reads "Answer ready." (or "No answer was given.") when
   the answer arrives; the answer itself sits in a polite, atomic live region labelled "Answer". Screen-reader
   output is unverified.

@@ -83,7 +83,10 @@ export default function LoginPage() {
               Your session expired. Please log in again.
             </p>
           )}
-          <p className="text-sm text-muted-foreground">Demo login: use the email and password from the application message.</p>
+          <p className="flex items-start gap-2 text-sm text-muted-foreground">
+            <Info aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+            Demo login? Use the provided credentials.
+          </p>
           <form onSubmit={onSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="login-email">Email</Label>

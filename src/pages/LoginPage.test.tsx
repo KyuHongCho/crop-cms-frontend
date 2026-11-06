@@ -13,8 +13,8 @@ import LoginPage from "./LoginPage";
 
 const API = `${window.location.origin}/api`;
 
-const DESCRIPTION = "Crop-growing answers, each with its sources, mostly journal articles and FAO crop data you can open and check.";
-const HINT = "Demo login: use the email and password from the application message.";
+const DESCRIPTION = "Ask about growing crops. Answers mostly from journal articles and FAO data.";
+const HINT = "Demo login? Use the provided credentials.";
 
 function mockLogin() {
   server.use(
@@ -82,15 +82,26 @@ describe("what the login page says", () => {
     );
   }
 
-  it("shows the tagline and the demo hint as plain muted text", () => {
+  it("shows the tagline as plain muted text, with no icon", () => {
     renderLogin();
-    for (const text of [DESCRIPTION, HINT]) {
-      const p = screen.getByText(text);
-      expect(p.tagName).toBe("P");
-      expect(p).toHaveClass("text-muted-foreground");
-      expect(p).not.toHaveAttribute("role");
-      expect(p.querySelector("svg")).toBeNull();
-    }
+    const p = screen.getByText(DESCRIPTION);
+    expect(p.tagName).toBe("P");
+    expect(p).toHaveClass("text-muted-foreground");
+    expect(p).not.toHaveAttribute("role");
+    expect(p.querySelector("svg")).toBeNull();
+  });
+
+  it("shows the demo hint as muted text with an aria-hidden Info icon before it, and no role", () => {
+    renderLogin();
+    const p = screen.getByText(HINT);
+    expect(p.tagName).toBe("P");
+    expect(p).toHaveClass("text-muted-foreground");
+    expect(p).not.toHaveAttribute("role");
+    const icon = p.querySelector("svg.lucide-info[aria-hidden='true']");
+    expect(icon).not.toBeNull();
+    expect(icon).toHaveClass("size-4", "shrink-0");
+    expect(p.firstElementChild).toBe(icon);
+    expect(p.firstChild).toBe(icon);
   });
 
   it("puts the tagline between the logo and the card, not inside the card", () => {
@@ -121,6 +132,8 @@ describe("what the login page says", () => {
     renderLogin();
     expect(screen.queryByText(/alongside them/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Trying the demo|Paste them|lock a login/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/each with its sources|you can open and check/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Demo login: use the email|application message/)).not.toBeInTheDocument();
   });
 
   it("keeps the sign-up link, and shows no expiry notice on a fresh visit", () => {
