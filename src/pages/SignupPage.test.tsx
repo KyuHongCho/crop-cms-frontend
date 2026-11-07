@@ -11,7 +11,7 @@ import { server } from "../test/server";
 
 const API = `${window.location.origin}/api`;
 const CODE = "x".repeat(20);
-const TAGLINE = "Crop-growing answers, each with its sources, mostly journal articles and FAO crop data you can open and check.";
+const TAGLINE = "Ask about growing crops. Answers mostly from journal articles and FAO data.";
 
 const member: components["schemas"]["MemberResponse"] = {
   id: 2,
@@ -73,6 +73,11 @@ describe("what the sign-up page says", () => {
     expect(card.contains(tagline)).toBe(false);
     expect(logo.compareDocumentPosition(tagline) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(tagline.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("does not carry the login page's demo hint", () => {
+    renderApp();
+    expect(screen.queryByText(/Demo login|provided credentials/)).not.toBeInTheDocument();
   });
 });
 

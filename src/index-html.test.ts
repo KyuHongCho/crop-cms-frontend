@@ -6,7 +6,7 @@ const html = readFileSync(resolve(process.cwd(), "index.html"), "utf8");
 const doc = new DOMParser().parseFromString(html, "text/html");
 const meta = (key: string, value: string) => doc.querySelector(`meta[${key}="${value}"]`)?.getAttribute("content");
 
-const DESCRIPTION = "Crop-growing answers, each with its sources, mostly journal articles and FAO crop data you can open and check.";
+const DESCRIPTION = "Ask about growing crops. Answers mostly from journal articles and FAO data.";
 
 describe("index.html, the page a pasted link or a crawler sees without running the app", () => {
   it("keeps the static title", () => {

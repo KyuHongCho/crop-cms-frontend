@@ -110,22 +110,33 @@ not under `docs/`, so it is not confused with this file, which holds engineering
   outside the shell and keep theirs. The member menu
   ([`MemberMenu`](../src/shell/MemberMenu.tsx)) holds the email, the theme radio group and "Log out".
 - **One tagline on the login and sign-up pages.** [`AuthBrand`](../src/components/brand/AuthBrand.tsx)
-  puts the logo and the sentence "Crop-growing answers, each with its sources, mostly journal articles
-  and FAO crop data you can open and check." in one block above the card, as plain muted text (contrast
-  row 4 in DESIGN.md), 12px under the logo (the clear space DESIGN.md section 9 asks for) and no wider
-  than the card. `index.html` carries the same sentence as its description and link-preview text. The
-  sentence says "mostly" because most published documents are journal articles or FAO data sheets you
-  can open from their card, but one published note is a folk remedy, and its card shows plain text and
-  no link. Beyond that it claims only what a visitor can see: each answer that cites documents lists
-  them in a Sources panel, and the app marks whether a source was read directly. It does not call the
+  puts the logo and the sentence "Ask about growing crops. Answers mostly from journal articles and FAO
+  data." in one block above the card, as plain muted text (contrast row 4 in DESIGN.md), 12px under the
+  logo (the clear space DESIGN.md section 9 asks for) and no wider than the card. `index.html` carries
+  the same sentence as its description and link-preview text. The sentence says "mostly" because 60 of
+  the 61 published documents are journal articles or FAO data sheets you can open from their card, but
+  one published note is a folk remedy, and its card shows plain text and no link. It does not call the
   sources reliable or peer reviewed, because the corpus also holds FAO ECOCROP data sheets and that
-  folk-remedy note, and some sources are read through another article. Measured at 320, 340, 346, 360,
-  375 and 390px it wraps to 3 lines, and at 414, 768 and 1280px to 2, the same in both browsers and both
-  themes; `text-balance` evens the lines out so the last one is not a single word. At 375x667 the login
-  form stays above the fold with no scroll; at 320x568 the sign-up page scrolls by about 59px (nothing
-  is clipped), a known and accepted effect at the narrowest size. The login card keeps a one-line demo
-  hint ("Demo login: use the email and password from the application message."), which holds no address
-  or password.
+  folk-remedy note, and some sources are read through another article. It does not say "only" either:
+  the generator prompt only instructs the model to use ONLY the numbered sources (`app/chat/llm.py` in
+  the backend), and nothing enforces it. Measured at 320, 340, 346, 360, 375, 390, 414, 430, 768 and
+  1280px it wraps to 2 lines, the same in both browsers and both themes. At 375x667 the login and
+  sign-up pages fit with no scroll; at 320x568 login fits and sign-up scrolls by 39px (nothing is
+  clipped), a known and accepted effect at the narrowest size. The login card keeps a short demo hint
+  ("Demo login? Use the provided credentials.") with an `Info` icon (its own neutral row in DESIGN.md
+  section 8) before it. It is plain muted text with no role (DESIGN.md section 13: static hint text
+  carries none), because unlike the session-expired notice it is not a live region, and it holds no
+  address or password; the sign-up page has no hint. With the icon in place the hint wraps to 2 lines
+  at 320, 340 and 346px and to 1 from 360px up (360, 375, 390, 414, 430 and 1280 measured), the same in
+  both browsers and both themes.
+- **The logo's gap is 4px (`gap-1` in [`Logo`](../src/components/brand/Logo.tsx)), and the drawn gap is
+  wider.** The sprout stops at 18.9px of its 24px box (path end plus half the 1.75 stroke), leaving 5.1px
+  of empty space on its right, so the visible distance from the sprout to the "C" is 9.1px at 4px (13.1px
+  at the old 8px), the same in both browsers. The same logo sits in the top bar, where the wordmark is
+  hidden below `sm`. DESIGN.md section 9 asks for clear space of half the mark's height (12px) on
+  every side of the whole logo, mark and wordmark together, so the 9.1px between the two is inside the
+  logo and not part of the clear space. The tagline sits 12px below the logo, which
+  `e2e/first-impression.spec.ts` checks, as it checks the 4px.
 - **`/members/me` is fetched once per session, in the shell.**
   [`MemberProvider`](../src/auth/MemberContext.tsx) is keyed by the token, so a replaced session never
   shows the previous member, and a response for an old token is dropped. The Ask page reads the member

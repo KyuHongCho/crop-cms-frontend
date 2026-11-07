@@ -1,6 +1,6 @@
 export default function Logo({ className }: { className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-2 font-semibold ${className ?? ""}`}>
+    <span className={`inline-flex items-center gap-1 font-semibold ${className ?? ""}`}>
       <svg
         aria-hidden="true"
         viewBox="0 0 24 24"

@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 
-const TAGLINE = "Crop-growing answers, each with its sources, mostly journal articles and FAO crop data you can open and check.";
+const TAGLINE = "Ask about growing crops. Answers mostly from journal articles and FAO data.";
 
 test.describe("signed out", () => {
   test.use({
@@ -32,6 +32,12 @@ test.describe("signed out", () => {
   test.describe("on a 1280x720 desktop", () => {
     test.use({ viewport: { width: 1280, height: 720 } });
 
+    test("/login: the logo's icon and wordmark are 4px apart", async ({ page }) => {
+      await page.goto("/login");
+      const gap = await page.getByText("Crop CMS").locator("xpath=..").evaluate((el) => getComputedStyle(el).columnGap);
+      expect(gap).toBe("4px");
+    });
+
     for (const path of ["/login", "/signup"]) {
       test(`${path}: the tagline stays within the card's width and 12px clear of the logo`, async ({ page }) => {
         await page.goto(path);
@@ -53,7 +59,7 @@ test.describe("signed out", () => {
     test("the login page has nothing clipped", async ({ page }) => {
       await page.goto("/login");
       const tagline = page.getByText(TAGLINE);
-      const hint = page.getByText("Demo login: use the email and password from the application message.");
+      const hint = page.getByText("Demo login? Use the provided credentials.");
       await expect(tagline).toBeVisible();
       await expect(hint).toBeVisible();
 
