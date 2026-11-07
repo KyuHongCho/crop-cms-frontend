@@ -353,8 +353,7 @@ set on `<html>`; `keep-all`; no layout that assumes English length. react-i18nex
 
 - A visible label on every field.
 - Errors use `role="alert"`, non-errors `role="status"`. Static hint text, such as the demo-login hint,
-  is neither and carries no role: it is present from first paint and not announced, unlike a status
-  that appears after a load.
+  is neither: it states a standing instruction, not something that happened, so it carries no role.
 - A status region exists from first paint and reads "Answer ready." (or "No answer was given.") when
   the answer arrives; the answer itself sits in a polite, atomic live region labelled "Answer". Screen-reader
   output is unverified.
