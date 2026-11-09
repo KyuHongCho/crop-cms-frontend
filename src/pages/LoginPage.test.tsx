@@ -91,6 +91,19 @@ describe("what the login page says", () => {
     expect(p.querySelector("svg")).toBeNull();
   });
 
+  it("breaks the tagline after its first sentence, and its own text still joins to the whole line", () => {
+    renderLogin();
+    const p = screen.getByText(DESCRIPTION);
+    const nodes = Array.from(p.childNodes);
+    const brs = p.querySelectorAll("br");
+    expect(brs).toHaveLength(1);
+    const at = nodes.indexOf(brs[0]);
+    const text = (list: ChildNode[]) => list.map((n) => n.textContent).join("").trim();
+    expect(text(nodes.slice(0, at))).toBe("Ask about growing crops.");
+    expect(text(nodes.slice(at + 1))).toBe("Answers mostly from journal articles and FAO data.");
+    expect(p).toHaveClass("text-balance");
+  });
+
   it("shows the demo hint as muted text with an aria-hidden Info icon before it, and no role", () => {
     renderLogin();
     const p = screen.getByText(HINT);
@@ -100,6 +113,8 @@ describe("what the login page says", () => {
     const icon = p.querySelector("svg.lucide-info[aria-hidden='true']");
     expect(icon).not.toBeNull();
     expect(icon).toHaveClass("size-4", "shrink-0");
+    expect(p).toHaveClass("gap-1");
+    expect(p).not.toHaveClass("gap-2");
     expect(p.firstElementChild).toBe(icon);
     expect(p.firstChild).toBe(icon);
   });
@@ -233,7 +248,9 @@ describe("where login goes", () => {
         </AuthProvider>
       </MemoryRouter>,
     );
-    expect(await screen.findByText(/session expired/i)).toBeInTheDocument();
+    const notice = await screen.findByText(/session expired/i);
+    expect(notice).toHaveClass("gap-2");
+    expect(screen.getByText(HINT)).toHaveClass("gap-1");
     await logIn();
     expect(await screen.findByRole("heading", { level: 1, name: "Library" })).toBeInTheDocument();
   });

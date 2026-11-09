@@ -157,7 +157,8 @@ describe("signup", () => {
     );
     renderApp();
     await fill();
-    expect(await screen.findByText(/Your account was created/)).toBeInTheDocument();
+    const notice = (await screen.findByText(/Your account was created/)).closest("p")!;
+    expect(notice).toHaveClass("gap-2");
     const link = screen.getByRole("link", { name: "Go to log in" });
     expect(link).toHaveAttribute("href", "/login");
     expect(getToken()).toBeNull();

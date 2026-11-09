@@ -83,7 +83,7 @@ export default function LoginPage() {
               Your session expired. Please log in again.
             </p>
           )}
-          <p className="flex items-start gap-2 text-sm text-muted-foreground">
+          <p className="flex items-start gap-1 text-sm text-muted-foreground">
             <Info aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
             Demo login? Use the provided credentials.
           </p>
