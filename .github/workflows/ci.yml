@@ -44,10 +44,15 @@ jobs:
       - name: Production build
         run: npm run build
 
-  # Advisory: not in branch protection. Linux and --with-deps are unproven until the first run.
+  # Advisory: not in branch protection.
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # The browsers and their system libraries are baked into this image, so no apt mirror is hit at
+    # run time. The tag must match @playwright/test in package-lock.json.
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --init --ipc=host
     steps:
       - uses: actions/checkout@v7
 
@@ -58,20 +63,15 @@ jobs:
 
       - run: npm ci
 
-      - uses: actions/cache@v4
-        id: playwright-cache
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-
-      # Browsers are cached but the system libraries are not, so the deps step runs on a cache hit.
-      - name: Install browsers and their system libraries
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps chromium webkit
-
-      - name: Install system libraries only
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: npx playwright install-deps chromium webkit
+      - name: Image and lockfile agree on the Playwright version
+        run: |
+          want=$(npx playwright --version | awk '{print $2}')
+          have=$(node -p "JSON.parse(require('fs').readFileSync('/ms-playwright/.docker-info','utf8')).driverVersion")
+          if [ "$want" != "$have" ]; then
+            echo "::error::package-lock.json has Playwright $want but the image ships $have: change the image tag under container: in .github/workflows/ci.yml"
+            exit 1
+          fi
+          echo "Playwright $want in the lockfile matches the image"
 
       - name: End-to-end tests
         run: npm run e2e
