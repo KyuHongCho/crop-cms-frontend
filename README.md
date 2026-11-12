@@ -235,8 +235,11 @@ main and on pushes to main. It is the required check on `main`: branch protectio
 to admins, and requires a pull request. It uses the Node version in `.nvmrc`, so CI tests that
 version and no newer one.
 
-`e2e` installs Chromium and WebKit and runs `npm run e2e`; on failure it uploads the report and
-traces. It is advisory: it is not a required check.
+`e2e` runs in the Playwright Docker image, which already holds Chromium, WebKit and their system
+libraries, and runs `npm run e2e`; on failure it uploads the report and traces. It is advisory: it is
+not a required check. When `@playwright/test` is bumped in `package-lock.json`, change the image tag
+under `container:` in `.github/workflows/ci.yml` to the same version; a guard step fails the job,
+saying so, if they differ.
 
 `schema-drift` regenerates the API types from the backend's main and fails when the committed
 `src/api/schema.d.ts` disagrees. It is advisory; fix it with `npm run gen:api` against the backend
