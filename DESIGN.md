@@ -348,6 +348,9 @@ not part of the clear space). The same mark is `public/favicon.svg`.
 
 Whole-sentence string literals; no sentences built from fragments; no text in CSS `content`; `lang` is
 set on `<html>`; `keep-all`; no layout that assumes English length. react-i18next is not built yet.
+A line break between two whole sentences (`<br />`) is allowed: each sentence stays its own
+whole-sentence literal, so it can become its own message key, and the space before the break is markup,
+not copy. A break inside a sentence is not allowed.
 
 ## 13. Accessibility checklist
 

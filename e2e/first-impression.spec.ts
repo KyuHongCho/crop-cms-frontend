@@ -1,6 +1,24 @@
 import { test, expect } from "./fixtures";
 
 const TAGLINE = "Ask about growing crops. Answers mostly from journal articles and FAO data.";
+const SENTENCES = ["Ask about growing crops.", "Answers mostly from journal articles and FAO data."];
+
+async function taglineLines(page: import("@playwright/test").Page) {
+  return page.getByText(TAGLINE).evaluate((p) => {
+    const lines: { text: string; tops: number[] }[] = [];
+    const walker = document.createTreeWalker(p, NodeFilter.SHOW_TEXT);
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+      const text = n.textContent!.trim();
+      if (!text) continue;
+      const range = document.createRange();
+      range.selectNodeContents(n);
+      const tops = [...new Set([...range.getClientRects()].map((r) => Math.round(r.top)))];
+      lines.push({ text, tops });
+    }
+    const lineHeight = parseFloat(getComputedStyle(p).lineHeight);
+    return { lines, rows: Math.round(p.getBoundingClientRect().height / lineHeight) };
+  });
+}
 
 test.describe("signed out", () => {
   test.use({
@@ -51,6 +69,30 @@ test.describe("signed out", () => {
         expect(t.y - (logo.y + logo.height)).toBeGreaterThanOrEqual(12);
       });
     }
+  });
+
+  for (const viewport of [{ width: 1280, height: 720 }, { width: 390, height: 844 }]) {
+    test.describe(`at ${viewport.width}px wide`, () => {
+      test.use({ viewport });
+
+      for (const path of ["/login", "/signup"]) {
+        test(`${path}: the tagline is two lines, one per sentence`, async ({ page }) => {
+          await page.goto(path);
+          await expect(page.getByText(TAGLINE)).toBeVisible();
+          const { lines, rows } = await taglineLines(page);
+          expect(lines.map((l) => l.text)).toEqual(SENTENCES);
+          expect(lines.map((l) => l.tops.length)).toEqual([1, 1]);
+          expect(lines[1].tops[0]).toBeGreaterThan(lines[0].tops[0]);
+          expect(rows).toBe(2);
+        });
+      }
+    });
+  }
+
+  test("/login: the demo hint's icon and text are 4px apart", async ({ page }) => {
+    await page.goto("/login");
+    const gap = await page.getByText("Demo login? Use the provided credentials.").evaluate((el) => getComputedStyle(el).columnGap);
+    expect(gap).toBe("4px");
   });
 
   test.describe("on a 375x667 phone", () => {

@@ -117,18 +117,33 @@ not under `docs/`, so it is not confused with this file, which holds engineering
   the 61 published documents are journal articles or FAO data sheets you can open from their card, but
   one published note is a folk remedy, and its card shows plain text and no link. It does not call the
   sources reliable or peer reviewed, because the corpus also holds FAO ECOCROP data sheets and that
-  folk-remedy note, and some sources are read through another article. It does not say "only" either:
-  the generator prompt only instructs the model to use ONLY the numbered sources (`app/chat/llm.py` in
-  the backend), and nothing enforces it. Measured at 320, 340, 346, 360, 375, 390, 414, 430, 768 and
-  1280px it wraps to 2 lines, the same in both browsers and both themes. At 375x667 the login and
-  sign-up pages fit with no scroll; at 320x568 login fits and sign-up scrolls by 39px (nothing is
-  clipped), a known and accepted effect at the narrowest size. The login card keeps a short demo hint
-  ("Demo login? Use the provided credentials.") with an `Info` icon (its own neutral row in DESIGN.md
-  section 8) before it. It is plain muted text with no role (DESIGN.md section 13: static hint text
-  carries none), because unlike the session-expired notice it is not a live region, and it holds no
-  address or password; the sign-up page has no hint. With the icon in place the hint wraps to 2 lines
-  at 320, 340 and 346px and to 1 from 360px up (360, 375, 390, 414, 430 and 1280 measured), the same in
-  both browsers and both themes.
+  folk-remedy note, and some sources are read through another article. It does not say "only" either: the
+  generator prompt only instructs the model to use ONLY the numbered sources (`app/chat/llm.py` in the
+  backend), and nothing enforces it. A `<br />` breaks it after the first sentence, so the first line is
+  "Ask about growing crops." and the second "Answers mostly from journal articles and FAO data."; the
+  element's own text still joins to the one sentence, so `index.html` and the tests match it unchanged.
+  Measured at 320, 340, 346, 349, 350, 351, 352, 355, 358, 359, 360, 375, 390, 414, 430, 768 and 1280px,
+  in both browsers and both themes, it is 2 lines from 350px up, with Pretendard loaded at the default
+  text size. At 320, 340, 346 and 349px the second sentence no longer fits on one line and the tagline is
+  3 lines, a known and accepted effect at the narrowest widths. The edge at 350px is tight: the second
+  sentence is 317.7px wide and 318px is available (317px at 349px), so with the font files blocked the
+  tagline is 3 lines at 350 and 360px, and with a 20px root font size it is 3 lines from 350 to 414px
+  (1280px stays 2 lines), in both browsers. The `text-balance` class stays because it still has an effect
+  in WebKit at the narrowest widths. With it switched off at runtime (320, 340, 346, 349, 350, 360 and
+  1280px, both browsers) the only change is in WebKit at 320 to 349px: it breaks the second sentence as
+  "Answers mostly from journal" / "articles and FAO data." with the class and as "Answers mostly from
+  journal articles and FAO" / "data." without it. Chromium breaks it as "…FAO" / "data." either way,
+  since it does not balance across the `<br />`, and from 350px each sentence is one line in both. At
+  375x667 the login page, the login page with the session-expired notice, and the sign-up page fit with
+  no scroll; at 320x568 login fits, sign-up scrolls by 59px and login with the session-expired notice by
+  51px (nothing is clipped, and no width overflows horizontally), also a known and accepted effect at the
+  narrowest size. The login card keeps a short demo hint ("Demo login? Use the provided credentials.")
+  with an `Info` icon (its own neutral row in DESIGN.md section 8) before it, with 4px between the icon's
+  box and the text (`gap-1`; the two notices keep `gap-2`). It is plain muted text with no role
+  (DESIGN.md section 13: static hint text carries none), because unlike the session-expired notice it is
+  not a live region, and it holds no address or password; the sign-up page has no hint. With the icon in
+  place the hint wraps to 2 lines at 320, 340 and 346px and is 1 line from 349px up (all 17 widths above
+  measured), the same in both browsers and both themes.
 - **The logo's gap is 4px (`gap-1` in [`Logo`](../src/components/brand/Logo.tsx)), and the drawn gap is
   wider.** The sprout stops at 18.9px of its 24px box (path end plus half the 1.75 stroke), leaving 5.1px
   of empty space on its right, so the visible distance from the sprout to the "C" is 9.1px at 4px (13.1px
